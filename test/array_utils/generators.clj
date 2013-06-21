@@ -6,12 +6,12 @@
 ;; TODO: Add more varieties?
 
 (defn darray
-  ([] (darray 10e3))
-  ([size]
+  (^doubles [] (darray 10e3))
+  (^doubles [size]
       (gen/double-array gen/double size)))
 
 (defn larray
-  ([] (larray 10))
-  ([size] (larray size 0 10e3))
-  ([size hi lo]
+  (^longs [] (larray 10))
+  (^longs [size] (larray size 0 10e3))
+  (^longs [size hi lo]
      (gen/long-array (gen/uniform hi lo) size)))

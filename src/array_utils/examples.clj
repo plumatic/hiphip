@@ -132,16 +132,16 @@
     (* 100 (/ (apply + ys) (apply + xs)))))
 
 ;;  1.9 ms
-(defn RQD-array
+#_(defn RQD-array
   [xs core-diameter]
   (let [ys (afilter (partial < (* 2 core-diameter)) xs)]
     (* 100.0 (/ (asum ys) (asum xs)))))
 
 ;; ~220 us. Getting better. The major bottleneck turns out to be
 ;; `partial`, which is really slow for some reason.
-(defn RQD-afilter
+#_(defn RQD-afilter
   [xs core-diameter]
-  (let [^double ys (afilter2 #(< (* 2.0 core-diameter) %) xs 0.0)]
+  (let [^double ys (afilter #(< (* 2.0 core-diameter) %) xs 0.0)]
     (* 100.0 (/ (asum ys) (asum xs)))))
 
 ;; Can we go faster? Sure. 76 us.

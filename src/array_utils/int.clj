@@ -1,21 +1,21 @@
-(ns ^{:doc "Utilities for double[]"
+(ns ^{:doc "Utilities for int[]"
       :author "EHF"}
-  array-utils.double
+  array-utils.int
   (:use array-utils.core)
   (:refer-clojure :exclude [amap]))
 
 (set! *warn-on-reflection* true)
 
-;; # Double implementations
+;; # Int implementations
 
 ;; Please refer to `core.clj/abind-hint` for information on how the
 ;; bindings work.
 
 (def type-info
-  {:sg `double
-   :atype "[D"
-   :constructor `double-array
-   :min-value Double/MIN_VALUE
-   :max-value Double/MAX_VALUE})
+  {:sg `int
+   :atype "[I"
+   :constructor `int-array
+   :min-value Integer/MIN_VALUE
+   :max-value Integer/MAX_VALUE})
 
 (load "type_impl")
