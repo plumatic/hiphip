@@ -3,18 +3,16 @@ array-utils
 
 `array-utils` is an array macro library for Clojure. It offers more
 elegant ways to handle primitive arrays, including both functional forms
-like `amap` and `areduce`, and in-place forms like `afill!`.
-
-The functions and macros require little or no manual type hinting, and
-they use a binding semantics similar to those of for (see below).
+like `amap` and `areduce`, and in-place forms like `afill!`.  The
+functions and macros require little or no manual type hinting, and they
+use a binding semantics similar to those of for (see below).
 
 `array-utils` supports multiple array types, including floats, doubles,
 ints, and longs. Feel free to make your own implementations using the
 abstractions offered in `core.clj` and `type_impl.clj`.
 
 Note: if you don't need the speed of primitive arrays, we encourage you
-to keep using Clojure's 'map' and 'reduce'--they're nicer except for the
-speed.
+to keep using Clojure's 'map' and 'reduce'--they're more flexible.
 
 # Usage
 
@@ -87,6 +85,7 @@ Then the operation will only be applied over that range.
 ## areduce
 
 ```clojure
+;; The maximum ratio entries of two vectors.
 (au/areduce [x xs y ys] result 1 (max result (/ x y)))
 ```
 
@@ -105,7 +104,7 @@ Then the operation will only be applied over that range.
 ## aproduct
 
 ```clojure
-;; Compute a probability
+;; Compute a joint probability.
 (let [scale 3.0]
   (au/aproduct [x xs] (/ x scale)))
 ```
@@ -122,7 +121,7 @@ Then the operation will only be applied over that range.
 ```clojure
 ;; Add a constant to an array.
 (au/afill! [x xs] (+ x 1.0))
-;; The += operation for arrays.
+;; The += operation for two arrays.
 (au/afill! [x xs y ys] (+ x y))
 ;; Insert marker values for each negative x.
 (au/afill! [x xs] (if (< 0 x) 999 x))
@@ -139,9 +138,11 @@ Then the operation will only be applied over that range.
 
 ## Functions
 
-There are also a few functions available:
+There are also a few common utility functions available:
 
 ```clojure
+;; Sum an array.
+(au/asum xs)
 ;; Maximum over an array
 (au/amax xs)
 ;; Minimum over an array
