@@ -31,22 +31,22 @@
 
 (defspec dot-product-returns-double
   dot-product-double
-  [^{:tag (`darray 10e3)} a ^{:tag (`darray 10e3)} b] 
+  [^{:tag (`darray 10e3)} a ^{:tag (`darray 10e3)} b]
   (assert (double? %)))
 
 (defspec amean-double-returns-mean
   d/amean
-  [^{:tag (`darray 10e3)} a] 
+  [^{:tag (`darray 10e3)} a]
   (assert (= (/ (reduce + a) (count a)) %)))
 
 (defspec amax-returns-the-largest-double
   d/amax
-  [^{:tag (`darray 10e3)} a] 
+  [^{:tag (`darray 10e3)} a]
   (assert (= (reduce max a) %)))
 
 (defspec amin-returns-the-smallest-double
   d/amin
-  [^{:tag (`darray 10e3)} a] 
+  [^{:tag (`darray 10e3)} a]
   (assert (= (reduce min a) %)))
 
 (defspec afill!-replaces-doubles-in-place
@@ -89,22 +89,22 @@
 
 (defspec dot-product-returns-long
   dot-product-long
-  [^{:tag (`larray 100 0 10e3)} a ^{:tag (`larray 100 0 10e3)} b] 
+  [^{:tag (`larray 100 0 10e3)} a ^{:tag (`larray 100 0 10e3)} b]
   (assert (long? %) (str "wrong type" (type %))))
 
 (defspec amean-long-returns-mean
   l/amean
-  [^{:tag (`larray 10e3)} a] 
+  [^{:tag (`larray 10e3)} a]
   (assert (= (/ (reduce + a) (count a)) %)))
 
 (defspec amax-returns-the-largest-long
-  l/amax 
-  [^{:tag (`larray 10e3)} a] 
+  l/amax
+  [^{:tag (`larray 10e3)} a]
   (assert (= (reduce max a) %)))
 
 (defspec amin-returns-the-smallest-long
-  l/amin 
-  [^{:tag (`larray 10e3)} a] 
+  l/amin
+  [^{:tag (`larray 10e3)} a]
   (assert (= (reduce min a) %)))
 
 (defspec afill!-replaces-longs-in-place
@@ -142,14 +142,4 @@
   (assert (every? true? (map = xs %))))
 
 (defn -main []
-  (runner/-main "."))
-
-;; (comment
-
-;;   (event/install-default-handlers)
-
-;;   
-  
-;;   (runner/-main "test/array_utils/generative")
-
-;;   )
+  (runner/-main "test/array_utils/generative"))

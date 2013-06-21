@@ -7,13 +7,15 @@
   :java-source-paths ["java"]
   :aliases {"test" ["do" "test," "run" "-m" "array-utils.generative.tests"]
             "bench" ["run" "-m" "array-utils.benchmark"]}
-  :dependencies [[org.clojure/clojure "1.5.0-RC4"]
-                 [criterium "0.3.1"] ;; for benchmarking
-                 [org.clojure/test.generative "0.3.0"] ;; awesome
-                 ;; stuff for the examples
-                 [org.apache.commons/commons-math3 "3.0"]
-                 [prismatic/plumbing "0.0.1"]]
-  :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]}}
+  :dependencies [[org.clojure/clojure "1.5.0-RC4"]]
+  :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]
+                   :dependencies [;; for benchmarking
+                                  [criterium "0.3.1"]
+                                  ;; awesome
+                                  [org.clojure/test.generative "0.4.0"]
+                                  ;; stuff for the examples
+                                  [org.apache.commons/commons-math3 "3.0"]
+                                  [prismatic/plumbing "0.0.1"]]}}
   :warn-on-reflection true
   ;; It turns out that Leiningen sets some JVM options that prevent full
   ;; optimization, so doing 'lein run' may not be good for benchmarking. Clear

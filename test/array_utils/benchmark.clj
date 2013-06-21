@@ -13,6 +13,10 @@
 ;; TODO: mess with bench/*final-gc-problem-threshold* for fewer warnings.
 
 (defmacro run-benchmarks
+  "Run and compare a set of benchmarks, returning descriptive maps of
+  the forms and results.
+
+  This is a macro so you don't have to quote the benchmark forms."
   [& exprs]
   (let [bench-sym `bench/quick-benchmark]
     (vec (for [[options expr] (partition 2 exprs)]
@@ -50,10 +54,10 @@
               {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ i (* 2.0 a)))))
      (delay (run-benchmarks
               {} (JavaBaseline/aclone xs)
-              {:expected-slowness 1.3} (d/amap [[i a] xs] a)))
+              {:expected-slowness 1.4} (d/amap [[i a] xs] a)))
      (delay (run-benchmarks
               {} (JavaBaseline/amap_op xs)
-              {:expected-slowness 1.3} (d/amap [[i a] xs] (+ 1.0 (* 2.0 a)))))
+              {:expected-slowness 1.4} (d/amap [[i a] xs] (+ 1.0 (* 2.0 a)))))
      (delay (run-benchmarks
               {} (JavaBaseline/dot_product xs ys)
               {:expected-slowness 1.5} (d/dot-product xs ys)))]))
