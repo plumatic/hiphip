@@ -140,6 +140,6 @@ There are also a few functions available:
 
 # License
 
-Copyright © 2013 Emil Flakk, Leon Barrett, and others.
+Copyright © 2013 Emil Flakk.
 
 Distributed under the Eclipse Public License, the same as Clojure.
