@@ -18,7 +18,7 @@
 ;; # Examples
 
 ;; ~18 us (quick), 18 us (long)
-(defn dot-product [ws xs]
+(defn dot-product- [ws xs]
   (asum [w ws x xs] (* w x)))
 
 ;; ~2.1 ms (quick), 2.2 ms (long)
