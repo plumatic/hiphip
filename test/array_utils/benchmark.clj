@@ -8,7 +8,7 @@
             [criterium.core :as bench]
             [clojure.pprint :as pprint]
             [clojure.test :refer [deftest is testing]])
-  (:import benchmark.JavaBaseline))
+  (:import array_utils.benchmark.JavaBaseline))
 
 ;; TODO: mess with bench/*final-gc-problem-threshold* for fewer warnings.
 
@@ -25,6 +25,8 @@
              :results (~bench-sym ~expr)}))))
 
 (defn benchmarks
+  "Create a sequence of delays that run benchmarks. This uses delays so
+  we can show some results before all benchmarks are complete."
   []
   (let [^doubles xs (gen/darray 10000)
         ^doubles ys (gen/darray 10000)]
@@ -62,20 +64,20 @@
               {} (JavaBaseline/dot_product xs ys)
               {:expected-slowness 1.5} (d/dot-product xs ys)))]))
 
-(defn reformat-benchmark
-  [baseline benchmark]
-  {:form (:form benchmark)
-   :slowness (format "%f"
-                     (/ (-> benchmark :results :mean first)
-                        (-> baseline :results :mean first)))
-   :ms (->> benchmark :results :mean first (* 1e3) (format "%f"))
-   :variance (->> benchmark :results :variance first (* 1e3) (format "%f"))})
-
 (defn print-benchmark
+  "Pretty-print a benchmark comparison."
   [bench-data]
-  (pprint/print-table
-    [:form :slowness :ms :variance]
-    (map (partial reformat-benchmark (first bench-data)) bench-data)))
+  (let [baseline (first bench-data)]
+    (pprint/print-table
+      [:form :slowness :ms :variance]
+      (for [benchmark bench-data]
+        {:form (:form benchmark)
+         :slowness (format "%f"
+                           (/ (-> benchmark :results :mean first)
+                              (-> baseline :results :mean first)))
+         :ms (->> benchmark :results :mean first (* 1e3) (format "%f"))
+         :variance (->> benchmark :results :variance first
+                        (* 1e3) (format "%f"))}))))
 
 (deftest benchmarks-test
   (testing "Benchmarks are appropriately fast.")
@@ -91,7 +93,8 @@
                       (:form result)
                       slowness expected-slowness))))))))
 
-(defn -main [& {:keys [dest] :or {dest "benchmarks"}}]
+(defn -main
+  []
   (println "Benchmarking. This might take a while.")
   (doseq [benchmark (benchmarks)]
     (print-benchmark @benchmark)))

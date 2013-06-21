@@ -1,4 +1,4 @@
-package benchmark;
+package array_utils.benchmark;
 
 import clojure.lang.IFn;
 
