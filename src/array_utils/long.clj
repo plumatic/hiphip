@@ -2,7 +2,7 @@
       :author "EHF"}
   array-utils.long
   (:use array-utils.core)
-  (:refer-clojure :exclude [amap]))
+  (:refer-clojure :exclude [amap areduce]))
 
 (set! *warn-on-reflection* true)
 

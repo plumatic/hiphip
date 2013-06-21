@@ -6,13 +6,13 @@
   [v]
   `(~(:sg type-info) ~v))
 
-(defmacro reduce-with
-  "Reduce, with for-like bindings.
+(defmacro areduce
+  "Areduce, with for-like bindings.
 
   Note: The type of the accumulator will have the same semantics as those of a
   variable in a loop."
   [bindings ret init body]
-  `(reduce-with-hint ~type-info ~bindings ~ret ~init ~body))
+  `(areduce-hint ~type-info ~bindings ~ret ~init ~body))
 
 (defmacro amap
   "Builds a new array from evaluating the body at each step. Uses for-like
@@ -47,7 +47,7 @@
   ([array]
      `(asum [a# ~array] a#))
   ([bindings body]
-     `(reduce-with ~bindings sum# (typecast 0) (+ sum# ~body))))
+     `(areduce ~bindings sum# (typecast 0) (+ sum# ~body))))
 
 (defmacro aproduct
   "Like `(apply * xs)`, but for arrays. Supports for-each bindings and a body
@@ -55,11 +55,11 @@
   ([array]
      `(aproduct [a# ~array] a#))
   ([bindings body]
-     `(reduce-with ~bindings prod# (typecast 1) (* prod# ~body))))
+     `(areduce ~bindings prod# (typecast 1) (* prod# ~body))))
 
-(defn amax [xs] (reduce-with [x xs] m (:min-value type-info) (max m x)))
+(defn amax [xs] (areduce [x xs] m (:min-value type-info) (max m x)))
 
-(defn amin [xs] (reduce-with [x xs] m (:max-value type-info) (min m x)))
+(defn amin [xs] (areduce [x xs] m (:max-value type-info) (min m x)))
 
 (defn amean [xs] (/ (asum xs) (alength xs)))
 

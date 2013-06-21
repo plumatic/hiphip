@@ -17,7 +17,7 @@
 ;;   [[i1 x] xs
 ;;    [i2 y] ys
 ;;    [i3 z] zs ...]
-;; but i1 and i2 will have the same value.
+;; but i1, i2, and i3 will have the same value.
 
 ;; All of these are internal tools that require type information as their first argument.
 ;; Refer to type_impl.clj, double.clj, long.clj et cetera for proper implementations.
@@ -68,7 +68,7 @@
     `(let ~(vec (mapcat array-binding (partition 2 bindings)))
        ~@body)))
 
-(defmacro reduce-with-hint
+(defmacro areduce-hint
   "Given bindings of the form [[idx var] array ...], reduces body over variable
   ret initialized to init."
   [type-info bindings ret init body]
