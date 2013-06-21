@@ -11,15 +11,12 @@
 
 (defn long? [n] (instance? Long n))
 
+;; We want an even? that works on floats.
 (defn even? [n] (zero? (mod n 2)))
 
 (def double1 (double-array (range 500 1000)))
 
 (def long1 (long-array (range 500 1000)))
-
-(defn dot-product-long [ws xs] (l/asum [w ws x xs] (* w x)))
-
-(defn dot-product-double [ws xs] (d/asum [w ws x xs] (* w x)))
 
 ;; # Tests
 
@@ -30,7 +27,7 @@
 ;; ## Doubles
 
 (defspec dot-product-returns-double
-  dot-product-double
+  d/dot-product
   [^{:tag (`darray 10e3)} a ^{:tag (`darray 10e3)} b]
   (assert (double? %)))
 
@@ -88,7 +85,7 @@
 ;; ## Longs
 
 (defspec dot-product-returns-long
-  dot-product-long
+  l/dot-product
   [^{:tag (`larray 100 0 10e3)} a ^{:tag (`larray 100 0 10e3)} b]
   (assert (long? %) (str "wrong type" (type %))))
 
