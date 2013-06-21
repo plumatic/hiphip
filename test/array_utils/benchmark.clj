@@ -87,7 +87,7 @@
           (let [slowness (/ (-> result :results :mean first)
                             (-> baseline :results :mean first))]
             (is (< slowness expected-slowness)
-              (format "%s was too slow! %s * baseline > %s * baseline"
+              (format "%s was too slow!"
                       (:form result)
                       slowness expected-slowness))))))))
 

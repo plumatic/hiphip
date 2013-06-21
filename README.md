@@ -70,6 +70,18 @@ or:
 ```
 but i1, i2, and i3 will have the same value.
 
+## Ranges
+
+You can also include a range in your bindings, e.g.
+```clojure
+(au/afill!
+  [[i x] xs
+   :range [0 10]]
+  i)
+```
+
+Then the operation will only be applied over that range.
+
 # Examples
 
 ## areduce
@@ -86,6 +98,8 @@ but i1, i2, and i3 will have the same value.
 ;; Compute a power series.
 (let [x 2.0]
   (au/asum [[i a] as] (* a (Math/pow x i))))
+;; Sum the first 10 elements of the array.
+(au/asum [x xs :range [0 10]] x)
 ```
 
 ## aproduct

@@ -18,9 +18,15 @@
 ;;    [i2 y] ys
 ;;    [i3 z] zs ...]
 ;; but i1, i2, and i3 will have the same value.
+;;
+;; You can also include a range:
+;;   [[i x] xs
+;;    :range 0 10]
+;; and the operation will only be applied over that range.
 
-;; All of these are internal tools that require type information as their first argument.
-;; Refer to type_impl.clj, double.clj, long.clj et cetera for proper implementations.
+;; All of these are internal tools that require type information as their first
+;; argument. Refer to type_impl.clj, double.clj, long.clj et cetera for proper
+;; implementations.
 
 (defn- intcast
   "Generate code to cast a symbol to an integer."
@@ -31,6 +37,11 @@
   "Generate a type-hinted symbol."
   [basis {:keys [atype] :as type-info}]
   (with-meta (gensym basis) {:tag atype}))
+
+(defn- get-range
+  "Get the :range option out of the bindings."
+  [bindings]
+  (:range (apply hash-map bindings)))
 
 (defn- rebind-arrays
   "Given a type and a vector of array bindings, generate symbols for the
@@ -45,13 +56,20 @@
   [type-info bindings]
   (assert (even? (count bindings))
           "Array binding requires an even number of forms")
-  (let [full-info (for [[i-and-name arr] (partition 2 bindings)]
-                    [i-and-name
-                     ;; Add type-hint metadata.
-                     (typed-gensym 'arr type-info)
-                     arr])]
-    [(vec (mapcat (fn [[_ arrsym arr]] [arrsym arr]) full-info))
-     (vec (mapcat (fn [[i-and-name arrsym _]] [i-and-name arrsym]) full-info))]))
+  (->>
+    ;; Bindings for each array
+    (for [[i-and-name arr] (partition 2 bindings)]
+      (if (= :range i-and-name)
+        (let [start-sym (gensym 'start)
+              stop-sym (gensym 'stop)]
+          [[[start-sym stop-sym] arr]
+           [:range [start-sym stop-sym]]])
+        (let [sym (typed-gensym 'arr type-info)]
+          [[sym arr] [i-and-name sym]])))
+    ;; Transpose
+    (apply map vector)
+    ;; Concatenate
+    (map #(vec (apply concat %)))))
 
 (defmacro abind
   "Given bindings of the form [[idx var] array ...], binds `idx` to the current
@@ -60,11 +78,16 @@
   [bindings i & body]
   (assert (even? (count bindings))
           "Array binding requires an even number of forms")
-  (let [array-binding (fn [[i-and-name arr]]
-                        (if (vector? i-and-name)
-                          [(first i-and-name) i
-                           (second i-and-name) `(aget ~arr ~(intcast i))]
-                          [i-and-name `(aget ~arr ~(intcast i))]))]
+  (let [array-binding
+        (fn [[i-and-name arr]]
+          (cond
+            (vector? i-and-name) [(first i-and-name) i
+                                  (second i-and-name) `(aget ~arr ~(intcast i))]
+            (symbol? i-and-name) [i-and-name `(aget ~arr ~(intcast i))]
+            ;; Ignore keywords like :range
+            (keyword? i-and-name) nil
+            :else (assert false
+                          (format "Bad array binding form: %s" i-and-name))))]
     `(let ~(vec (mapcat array-binding (partition 2 bindings)))
        ~@body)))
 
@@ -73,79 +96,62 @@
   ret initialized to init."
   [type-info bindings ret init body]
   (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)
-        arr (second bindings)]
+        [start stop] (for [s (or (get-range bindings)
+                                 [0 `(alength ~(second bindings))])]
+                       `(long ~s))]
     `(let ~arr-rebindings
-       (areduce ~arr i# ~ret ~init
-                (abind ~bindings i# ~body)))))
-
-;; for doing ops on a subset of an array
-(defmacro doarr-bound-hint
-  "Given bindings of the form [[idx var] array ...], performs body statements
-  with bindings for each element of the array in the given bounds."
-  [type-info [start stop] bindings & body]
-  (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)]
-    `(let ~arr-rebindings
-       (loop [i# (long ~start)]
-         (when-not (== ~stop i#)
-           (abind ~bindings i# ~@body)
-           (recur (unchecked-inc-int i#)))))))
+       (loop [i# ~start ~ret ~init]
+         (if (< i# ~stop)
+           (recur (unchecked-inc-int i#) (abind ~bindings i# ~body))
+           ~ret)))))
 
 (defmacro doarr-hint
   "Given bindings of the form [[idx var] array ...], performs body statements
-  with bindings for each element of the array."
+  with bindings for each element of the array (in the given bounds)."
   [type-info bindings & body]
-  (let [arr (typed-gensym 'arr type-info)]
-    `(let [~arr ~(second bindings)]
-       (doarr-bound-hint ~type-info
-                         [0 (alength ~arr)]
-                         ~(assoc bindings 1 arr) ~@body))))
+  (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)
+        [start stop] (for [s (or (get-range bindings)
+                                 [0 `(alength ~(second bindings))])]
+                       `(long ~s))]
+    `(let ~arr-rebindings
+       (loop [i# ~start]
+         (when (< i# ~stop)
+           (abind ~bindings i# ~@body)
+           (recur (unchecked-inc-int i#)))))))
 
-(defmacro afill-bound-into-hint!
+(defmacro afill-into-hint!
   "Helper: Given bindings of the form [[idx var] array ...], maps body into the
-  given array for each element of the input arrays in the given bounds."
-  [{:keys [sg] :as type-info} dest [start stop] bindings body]
+  given array for each element of the input arrays (in the given bounds)."
+  [{:keys [sg] :as type-info} dest bindings body]
   (if (symbol? (first bindings))
-    `(afill-bound-into-hint!
-       ~type-info ~dest ~[start stop]
+    `(afill-into-hint!
+       ~type-info ~dest
        ~(assoc bindings 0 [(gensym 'i) (first bindings)])
        ~body)
     (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)
           i (ffirst bindings)]
       `(let ~arr-rebindings
-         (doarr-bound-hint ~type-info
-                           [~start ~stop]
-                           ~bindings
-                           (aset ~dest ~(intcast i) (~sg ~body)))))))
+         (doarr-hint ~type-info
+                     ~bindings
+                     (aset ~dest ~(intcast i) (~sg ~body)))))))
 
 ;; NOTE: clojure.core/amap is slow.
 (defmacro amap-hint
-  "Given bindings of the form [[idx var] array ...], maps body into a
-  new array for each element of the input arrays."
+  "Given bindings of the form [[idx var] array ...], maps body into a new array
+  for each element of the input arrays."
   [{:keys [constructor] :as type-info} bindings body]
   (let [arr (typed-gensym 'arr type-info)
         anew (typed-gensym 'anew type-info)]
     `(let [~arr ~(second bindings)
            ~anew (~constructor (alength ~arr))]
-       (afill-bound-into-hint! ~type-info ~anew
-                               [0 (alength ~arr)]
-                               ~(assoc bindings 1 arr) ~body))))
+       (afill-into-hint! ~type-info ~anew
+                         ~(assoc bindings 1 arr) ~body))))
 
 (defmacro afill-hint!
-  "Given bindings of the form [[idx var] array ...], maps body intothe first
+  "Given bindings of the form [[idx var] array ...], maps body into the first
   array (destructively!) for each element of the input arrays."
   [type-info bindings body]
   (let [arr (typed-gensym 'a type-info)]
     `(let [~arr ~(second bindings)]
-       (afill-bound-into-hint! ~type-info ~arr
-                               [0 (alength ~arr)]
-                               ~(assoc bindings 1 arr) ~body))))
-
-(defmacro afill-bound-hint!
-  "Given bindings of the form [[idx var] array ...], maps body intothe first
-  array (destructively!) for each element of the input arrays in the bounds."
-  [type-info [start stop] bindings body]
-  (let [arr (typed-gensym 'a type-info)]
-    `(let [~arr ~(second bindings)]
-       (afill-bound-into-hint! ~type-info ~arr
-                               ~[start stop]
-                               ~(assoc bindings 1 arr) ~body))))
+       (afill-into-hint! ~type-info ~arr
+                         ~(assoc bindings 1 arr) ~body))))

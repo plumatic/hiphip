@@ -25,21 +25,11 @@
   ([bindings & body]
      `(doarr-hint ~type-info ~bindings ~@body)))
 
-(defmacro doarr-bounded
-  "Like `doarr`, but on a subset of the array"
-  [[start stop] bindings & body]
-  `(doarr-bound-hint ~type-info [~start ~stop] ~bindings ~@body))
-
 (defmacro afill!
   "Like `amap`, but with destructive mapping on the first array in the
   bindings."
   [bindings body]
   `(afill-hint! ~type-info ~bindings ~body))
-
-(defmacro afill-bounded!
-  "Like `afill!`, but over a subset of the array."
-  [[start stop] bindings body]
-  `(afill-bound-hint! ~type-info [~start ~stop] ~bindings ~body))
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body
