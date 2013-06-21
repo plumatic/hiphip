@@ -10,7 +10,6 @@
             [criterium.core :as bench])
   (import [org.apache.commons.math3.special Gamma]))
 
-(set! *unchecked-math* true)
 (set! *warn-on-reflection* true)
 ;; enable on pain of (REPL) death
 (set! *print-length* 15)

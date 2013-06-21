@@ -19,7 +19,11 @@ speed.
 # Usage
 
 In your `project.clj`, add a dependency on
-`[array-utils "unreleased-version"]`.
+`[array-utils "unreleased-version"]`. Then require a type namespace,
+e.g.
+```clojure
+(require 'array-utils.double)
+```
 
 # Motivation
 
@@ -35,31 +39,30 @@ Instead of writing
 you can write
 
 ```clojure
-(defn dot-product [ws xs] (asum [x xs w ws] (* x w)))
+(defn dot-product [ws xs] (au/asum [x xs w ws] (* x w)))
 ```
-
-See `examples.clj` for more.
 
 # Bindings
 
 All these macros use binding forms that look like:
 ```clojure
-(amap
+(au/amap
   [[i x] xs
    y ys ...]
   <expression involving i, x, y>)
 ```
+
 This binds x and y to the ith element of xs and ys, respectively. You
 can include i-variables wherever and whenever you want, so you can do:
 ```clojure
-(amap
+(au/amap
   [x xs
    y ys ...]
   <expression involving x, y>)
 ```
 or:
 ```clojure
-(amap
+(au/amap
   [[i1 x] xs
    [i2 y] ys
    [i3 z] zs ...]
@@ -67,10 +70,73 @@ or:
 ```
 but i1, i2, and i3 will have the same value.
 
-# Documentation
+# Examples
 
-See the docstrings. Generate the HTML documentation by running
-`lein marg`.
+## areduce
+
+```clojure
+(au/areduce [x xs y ys] result 1 (max result (/ x y)))
+```
+
+## asum
+
+```clojure
+;; dot product
+(au/asum [x xs y ys] (* x y))
+;; Compute a power series.
+(let [x 2.0]
+  (au/asum [[i a] as] (* a (Math/pow x i))))
+```
+
+## aproduct
+
+```clojure
+;; Compute a probability
+(let [scale 3.0]
+  (au/aproduct [x xs] (/ x scale)))
+```
+
+## amap
+
+```clojure
+;; Take the max of two arrays.
+(au/amap [x xs y ys] (max x y))
+```
+
+## afill!
+
+```clojure
+;; Add a constant to an array.
+(au/afill! [x xs] (+ x 1.0))
+;; The += operation for arrays.
+(au/afill! [x xs y ys] (+ x y))
+;; Insert marker values for each negative x.
+(au/afill! [x xs] (if (< 0 x) 999 x))
+```
+
+## doarr
+
+```clojure
+;; Apply some java object's function.
+(let [java-thing (JavaThing.)]
+  (au/doarr [[i x] xs y ys] (.process java-thing i x y))
+  (.getResult java-thing))
+```
+
+## Functions
+
+There are also a few functions available:
+
+```clojure
+;; Maximum over an array
+(au/amax xs)
+;; Minimum over an array
+(au/amin xs)
+;; Average of an array
+(au/amean xs)
+;; Dot product of two arrays
+(au/dot-product xs ys)
+```
 
 # License
 

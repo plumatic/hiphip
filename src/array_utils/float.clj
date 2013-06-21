@@ -8,9 +8,6 @@
 
 ;; # Float implementations
 
-;; Please refer to `core.clj/abind-hint` for information on how the
-;; bindings work.
-
 (def type-info
   {:sg `float
    :atype "[F"

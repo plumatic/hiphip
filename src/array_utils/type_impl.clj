@@ -57,10 +57,22 @@
   ([bindings body]
      `(areduce ~bindings prod# (typecast 1) (* prod# ~body))))
 
-(defn amax [xs] (areduce [x xs] m (:min-value type-info) (max m x)))
+(defn amax
+  "Maximum over an array."
+  [xs]
+  (areduce [x xs] m (:min-value type-info) (max m x)))
 
-(defn amin [xs] (areduce [x xs] m (:max-value type-info) (min m x)))
+(defn amin
+  "Minimum over an array."
+  [xs]
+  (areduce [x xs] m (:max-value type-info) (min m x)))
 
-(defn amean [xs] (/ (asum xs) (alength xs)))
+(defn amean
+  "Mean over an array."
+  [xs]
+  (/ (asum xs) (alength xs)))
 
-(defn dot-product [xs ys] (asum [x xs y ys] (* x y)))
+(defn dot-product
+  "Dot product of two arrays."
+  [xs ys]
+  (asum [x xs y ys] (* x y)))
