@@ -11,25 +11,28 @@
 
 (defn long? [n] (instance? Long n))
 
-;; We want an even? that works on floats.
-(defn even? [n] (zero? (mod n 2)))
-
-(def double1 (double-array (range 500 1000)))
-
-(def long1 (long-array (range 500 1000)))
-
 ;; # Tests
-
-;; TODO: Write a cool test for filter!
-
-;; ----------------------------------------------------------------------
 
 ;; ## Doubles
 
-(defspec dot-product-returns-double
+(defspec asum-sums-double
+  (fn [^doubles xs]
+    (d/asum [x xs] x))
+  [^{:tag (`darray 10e3)} xs]
+  (assert (= % (apply + xs))))
+
+(defspec asum-sums-bounded-double
+  (fn [^doubles xs]
+    (d/asum [x xs :range [50 100]] x))
+  [^{:tag (`darray 10e3)} xs]
+  (assert (= % (apply + (take 50 (drop 50 xs))))))
+
+(defspec dot-product-double
   d/dot-product
   [^{:tag (`darray 10e3)} a ^{:tag (`darray 10e3)} b]
-  (assert (double? %)))
+  (do
+    (assert (double? %))
+    (assert (= % (reduce + (map * a b))))))
 
 (defspec amean-double-returns-mean
   d/amean
@@ -45,6 +48,14 @@
   d/amin
   [^{:tag (`darray 10e3)} a]
   (assert (= (reduce min a) %)))
+
+(defspec amap-maps-doubles
+  (fn [^doubles xs]
+    (d/amap [[i x] xs] (+ i x)))
+  [^{:tag (`drange 10e3)} xs]
+  (do
+    (assert (every? true? (map == xs (range 10e3))))
+    (assert (every? true? (map == % (for [i (range 10e3)] (* 2 i)))))))
 
 (defspec afill!-replaces-doubles-in-place
   (fn [^doubles xs]
@@ -68,8 +79,8 @@
   (fn [^doubles xs]
     (d/afill! [x xs :range [1 4]] 2)
     xs)
-  [^{:tag (`darray 10e3)} xs]
-  (assert (every? true? (map == [2.0 2.0 2.0] (take 3 (rest xs))))))
+  [^{:tag (`drange 10e3)} xs]
+  (assert (every? true? (map == (concat [0.0 2.0 2.0 2.0] (range 4 10e3)) xs))))
 
 (defspec double-doarr-has-side-effects
   (fn [^doubles xs]
@@ -84,10 +95,24 @@
 
 ;; ## Longs
 
-(defspec dot-product-returns-long
+(defspec asum-sums-long
+  (fn [^longs xs]
+    (l/asum [x xs] x))
+  [^{:tag (`larray 10e3)} xs]
+  (assert (= % (apply + xs))))
+
+(defspec asum-sums-bounded-long
+  (fn [^longs xs]
+    (l/asum [x xs :range [50 100]] x))
+  [^{:tag (`larray 10e3)} xs]
+  (assert (= % (apply + (take 50 (drop 50 xs))))))
+
+(defspec dot-product-long
   l/dot-product
   [^{:tag (`larray 100 0 10e3)} a ^{:tag (`larray 100 0 10e3)} b]
-  (assert (long? %) (str "wrong type" (type %))))
+  (do
+    (assert (long? %))
+    (assert (= % (reduce + (map * a b))))))
 
 (defspec amean-long-returns-mean
   l/amean
@@ -103,6 +128,14 @@
   l/amin
   [^{:tag (`larray 10e3)} a]
   (assert (= (reduce min a) %)))
+
+(defspec amap-maps-longs
+  (fn [^longs xs]
+    (l/amap [[i x] xs] (+ i x)))
+  [^{:tag (`lrange 10e3)} xs]
+  (do
+    (assert (every? true? (map = xs (range 10e3))))
+    (assert (every? true? (map = % (for [i (range 10e3)] (* 2 i)))))))
 
 (defspec afill!-replaces-longs-in-place
   (fn [^longs xs]
@@ -126,8 +159,8 @@
   (fn [^longs xs]
     (l/afill! [x xs :range [1 4]] 2)
     xs)
-  [^{:tag (`larray 10e3)} xs]
-  (assert (every? true? (map == [2 2 2] (take 3 (rest xs))))))
+  [^{:tag (`lrange 10e3)} xs]
+  (assert (every? true? (map == (concat [0 2 2 2] (range 4 10e3)) xs))))
 
 (defspec long-doarr-has-side-effects
   (fn [^longs xs]
