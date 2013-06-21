@@ -1,34 +1,29 @@
-array-utils_internal
-====================
+array-utils
+===========
 
-Internal version of array-utils (new name tbd?)
+`array-utils` is an array macro library for Clojure. It offers more
+elegant ways to handle primitive arrays, including both functional forms
+like `amap` and `areduce`, and in-place forms like `afill!`.
 
-# array-utils
+The functions and macros require little or no manual type hinting, and
+they use a binding semantics similar to those of for (see below).
 
-`array-utils` is a small lib inspired by Prismatic's Flop. It offers
-more elegant ways to handle primitive arrays. Includes functional
-programming staples like `afilter` and `amap`, as well as in-place
-versions like `afill!` and `afilter!`.
+`array-utils` supports multiple array types, including floats, doubles,
+ints, and longs. Feel free to make your own implementations using the
+abstractions offered in `core.clj` and `type_impl.clj`.
 
-Most of the functions require little or no manual type hinting, and
-most of them support binding semantics similar to for-each in
-imperative languages. (See `core.clj/abind-hint`).
+Note: if you don't need the speed of primitive arrays, we encourage you
+to keep using Clojure's 'map' and 'reduce'--they're nicer except for the
+speed.
 
-`array-utils` now supports multiple array types, starting with doubles
-and longs. Feel free to make your own implementations using the
-abstractions offered in `core.clj`.
+# Usage
 
-**NB.** Please consider using built-in Clojure functions and data
-structures unless you need the raw speed of Java primitives. Please
-think of the children.
+In your `project.clj`, add a dependency on
+`[array-utils "unreleased-version"]`.
 
-## Usage
+# Motivation
 
-Pull the repo, run `lein deps`, and require `array-utils.double`.
-
-## Motivation
-
-Instead of 
+Instead of writing
 
 ```clojure
 (defn dot-product [^doubles ws ^doubles xs]
@@ -45,13 +40,40 @@ you can write
 
 See `examples.clj` for more.
 
-## Documentation
+# Bindings
 
-See the docstrings. Generate the HTML documentation by running `lein marg`.
+All these macros use binding forms that look like:
+```clojure
+(amap
+  [[i x] xs
+   y ys ...]
+  <expression involving i, x, y>)
+```
+This binds x and y to the ith element of xs and ys, respectively. You
+can include i-variables wherever and whenever you want, so you can do:
+```clojure
+(amap
+  [x xs
+   y ys ...]
+  <expression involving x, y>)
+```
+or:
+```clojure
+(amap
+  [[i1 x] xs
+   [i2 y] ys
+   [i3 z] zs ...]
+  <expression involving i1, x, i2, y, i3, z>)
+```
+but i1, i2, and i3 will have the same value.
 
-## License
+# Documentation
 
-Copyright © 2013 Emil Flakk
+See the docstrings. Generate the HTML documentation by running
+`lein marg`.
+
+# License
+
+Copyright © 2013 Emil Flakk, Leon Barrett, and others.
 
 Distributed under the Eclipse Public License, the same as Clojure.
-
