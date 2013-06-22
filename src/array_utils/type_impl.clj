@@ -6,6 +6,11 @@
   [v]
   `(~(:sg type-info) ~v))
 
+(defmacro alength
+  "Mostly internal: alength that doesn't require reflection"
+  [xs]
+  `(clojure.core/alength (~(:pl type-info) ~xs)))
+
 (defmacro areduce
   "Areduce, with for-like bindings.
 

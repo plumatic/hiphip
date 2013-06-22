@@ -2,7 +2,7 @@
       :author "EHF"}
   array-utils.long
   (:use array-utils.core)
-  (:refer-clojure :exclude [amap areduce]))
+  (:refer-clojure :exclude [amap areduce alength]))
 
 (set! *warn-on-reflection* true)
 
@@ -10,6 +10,7 @@
 
 (def type-info
   {:sg `long
+   :pl `longs
    :atype "[J"
    :constructor `long-array
    :min-value Long/MIN_VALUE

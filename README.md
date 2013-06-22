@@ -158,6 +158,8 @@ There are also a few common utility functions available:
 (au/amean xs)
 ;; Dot product of two arrays
 (au/dot-product xs ys)
+;; Length of an array.
+(au/alength xs)
 ```
 
 # Caveats

@@ -2,7 +2,7 @@
       :author "EHF"}
   array-utils.int
   (:use array-utils.core)
-  (:refer-clojure :exclude [amap areduce]))
+  (:refer-clojure :exclude [amap areduce alength]))
 
 (set! *warn-on-reflection* true)
 
@@ -10,6 +10,7 @@
 
 (def type-info
   {:sg `int
+   :pl `ints
    :atype "[I"
    :constructor `int-array
    :min-value Integer/MIN_VALUE

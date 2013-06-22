@@ -2,7 +2,7 @@
       :author "EHF"}
   array-utils.double
   (:use array-utils.core)
-  (:refer-clojure :exclude [amap areduce]))
+  (:refer-clojure :exclude [amap areduce alength]))
 
 (set! *warn-on-reflection* true)
 
@@ -10,6 +10,7 @@
 
 (def type-info
   {:sg `double
+   :pl `doubles
    :atype "[D"
    :constructor `double-array
    :min-value Double/MIN_VALUE
