@@ -26,17 +26,24 @@ e.g.
 # Motivation
 
 Instead of writing
-
 ```clojure
+;; 1ms for 10000 doubles
+(defn dot-product [^doubles ws ^doubles xs]
+  (reduce + (map * ws xs))
+```
+
+or the faster but messier
+```clojure
+;; 8.5 us
 (defn dot-product [^doubles ws ^doubles xs]
   (areduce xs i ret 0.0
     (+ ret (* (aget xs i)
               (aget ws i))))
 ```
 
-you can write
-
+you can write the fast and simple
 ```clojure
+;; 8.5 us
 (defn dot-product [ws xs] (au/asum [x xs w ws] (* x w)))
 ```
 

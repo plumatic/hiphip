@@ -32,12 +32,14 @@
         ^doubles ys (gen/darray 10000)]
     [(delay (run-benchmarks
               {} (JavaBaseline/asum_noop xs)
-              {:expected-slowness 1.1} (d/asum [a xs] a)))
+              {:expected-slowness 1.1} (d/asum [a xs] a)
+              {} (reduce + xs)))
      (delay (run-benchmarks
               {} (JavaBaseline/asum_op xs)
               {:expected-slowness 1.1} (d/asum [a xs] (+ 1.0 (* 2.0 a)))
               {} (areduce xs i ret (double 0)
-                          (+ ret (+ 1.0 (* 2.0 (aget xs i)))))))
+                          (+ ret (+ 1.0 (* 2.0 (aget xs i)))))
+              {} (reduce + (map (fn [x] (+ 1.0 (* 2.0 x))) xs))))
      (delay (run-benchmarks
               {} (JavaBaseline/afill_op xs)
               ;; Operations with ints are slow, not sure why. This could be a
@@ -56,13 +58,19 @@
               {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ i (* 2.0 a)))))
      (delay (run-benchmarks
               {} (JavaBaseline/aclone xs)
-              {:expected-slowness 1.4} (d/amap [[i a] xs] a)))
+              {:expected-slowness 1.4} (d/amap [[i a] xs] a)
+              {} (aclone xs)))
      (delay (run-benchmarks
               {} (JavaBaseline/amap_op xs)
-              {:expected-slowness 1.4} (d/amap [[i a] xs] (+ 1.0 (* 2.0 a)))))
+              {:expected-slowness 1.4} (d/amap [[i a] xs] (+ 1.0 (* 2.0 a)))
+              {} (doall (map (fn [x]  (+ 1.0 (* 2.0 x))) xs))))
      (delay (run-benchmarks
               {} (JavaBaseline/dot_product xs ys)
-              {:expected-slowness 1.5} (d/dot-product xs ys)))]))
+              {:expected-slowness 1.5} (d/dot-product xs ys)
+              {} (areduce xs i ret 0.0
+                          (+ ret (* (aget xs i)
+                                    (aget ys i))))
+              {} (reduce + (map * xs ys))))]))
 
 (defn print-benchmark
   "Pretty-print a benchmark comparison."
