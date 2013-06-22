@@ -160,6 +160,13 @@ There are also a few common utility functions available:
 (au/dot-product xs ys)
 ```
 
+# Caveats
+
+New versions of Leiningen set JVM options that might prevent the JVM
+from doing some optimizations to your code. If your benchmarks seem to
+be regressing, make sure to add `:jvm-opts ^:replace []` to your
+`project.clj`.
+
 # License
 
 Copyright © 2013 Emil Flakk.
