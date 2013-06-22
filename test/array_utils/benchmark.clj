@@ -22,7 +22,7 @@
     (vec (for [[options expr] (partition 2 exprs)]
            `{:form (quote ~expr)
              :options ~options
-             :results (~bench-sym ~expr)}))))
+             :results (~bench-sym ~expr {})}))))
 
 (defn benchmarks
   "Create a sequence of delays that run benchmarks. This uses delays so
