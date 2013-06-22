@@ -3,7 +3,7 @@ array-utils
 
 `array-utils` is an array macro library for Clojure. It offers more
 elegant ways to handle primitive arrays, including both functional forms
-like `amap` and `areduce`, and in-place forms like `afill!`.  The
+like `amap` and `areduce` and in-place forms like `afill!`.  The
 functions and macros require little or no manual type hinting, and they
 use a binding semantics similar to those of for (see below).
 
