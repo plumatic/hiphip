@@ -10,7 +10,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]]
   :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]
                    :dependencies [;; for benchmarking
-                                  [criterium "0.3.1"]
+                                  [criterium "0.4.1"]
                                   ;; awesome
                                   [org.clojure/test.generative "0.4.0"]]}}
   :warn-on-reflection true
