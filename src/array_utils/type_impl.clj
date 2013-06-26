@@ -11,6 +11,16 @@
   [xs]
   `(clojure.core/alength ~(with-meta xs {:tag (:atype type-info)})))
 
+(defmacro aset
+  "aset that doesn't require type hinting"
+  [xs idx val]
+  `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~idx ~val))
+
+(defmacro aclone
+  "aclone that doesn't require type hinting"
+  [xs]
+  `(clojure.core/aclone ~(with-meta xs {:tag (:atype type-info)})))
+
 (defmacro areduce
   "Areduce, with for-like bindings.
 
