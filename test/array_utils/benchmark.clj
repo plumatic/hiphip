@@ -31,61 +31,64 @@
   (let [^doubles xs (gen/darray 10000)
         ^doubles ys (gen/darray 10000)]
     [(delay (run-benchmarks
-              {} (JavaBaseline/asum_noop xs)
-              {:expected-slowness 1.1} (d/asum [a xs] a)
-              {} (reduce + xs)))
+             {} (JavaBaseline/asum_noop xs)
+             {:expected-slowness 1.1} (d/asum [a xs] a)
+             {} (reduce + xs)))
      (delay (run-benchmarks
-              {} (JavaBaseline/asum_op xs)
-              {:expected-slowness 1.1} (d/asum [a xs] (+ 1.0 (* 2.0 a)))
-              {} (areduce xs i ret (double 0)
-                          (+ ret (+ 1.0 (* 2.0 (aget xs i)))))
-              {} (reduce + (map (fn [x] (+ 1.0 (* 2.0 x))) xs))))
+             {} (JavaBaseline/asum_op xs)
+             {:expected-slowness 1.1} (d/asum [a xs] (+ 1.0 (* 2.0 a)))
+             {} (areduce xs i ret (double 0)
+                         (+ ret (+ 1.0 (* 2.0 (aget xs i)))))
+             {} (reduce + (map (fn [x] (+ 1.0 (* 2.0 x))) xs))))
      (delay (run-benchmarks
-              {} (JavaBaseline/afill_op xs)
-              ;; Operations with ints are slow, not sure why. This could be a
-              ;; major point of improvement.
-              {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ 1.0 (* 2.0 i)))
-              {} (dotimes [i (alength xs)] (aset xs i (+ 1.0 (* 2.0 i))))))
+             {} (JavaBaseline/afill_op xs)
+             ;; Operations with ints are slow, not sure why. This could be a
+             ;; major point of improvement.
+             {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ 1.0 (* 2.0 i)))
+             {} (dotimes [i (alength xs)] (aset xs i (+ 1.0 (* 2.0 i))))))
      (delay (run-benchmarks
-              ;; For some reason this Java optimizes to *very fast*,
-              ;; faster than an areduce. I'm not sure why.
-              {} (JavaBaseline/amap_inplace_op xs)
-              {:expected-slowness 1.4} (d/afill! [a xs] (* 2.0 a))
-              {:expected-slowness 1.8} (d/afill! [a xs] (+ 1.0 (* 2.0 a)))
-              {} (dotimes [i (alength xs)]
-                   (aset xs i (+ 1.0 (* 2.0 (aget xs i)))))
-              ;; Operations with ints are slow, not sure why.
-              {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ i (* 2.0 a)))))
+             ;; For some reason this Java optimizes to *very fast*,
+             ;; faster than an areduce. I'm not sure why.
+             {} (JavaBaseline/amap_inplace_op xs)
+             {:expected-slowness 1.4} (d/afill! [a xs] (* 2.0 a))
+             {:expected-slowness 1.8} (d/afill! [a xs] (+ 1.0 (* 2.0 a)))
+             {} (dotimes [i (alength xs)]
+                  (aset xs i (+ 1.0 (* 2.0 (aget xs i)))))
+             ;; Operations with ints are slow, not sure why.
+             {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ i (* 2.0 a)))))
      (delay (run-benchmarks
-              {} (JavaBaseline/aclone xs)
-              {:expected-slowness 1.4} (d/amap [[i a] xs] a)
-              {} (aclone xs)))
+             {} (JavaBaseline/aclone xs)
+             {:expected-slowness 1.4} (d/amap [[i a] xs] a)
+             {} (aclone xs)))
      (delay (run-benchmarks
-              {} (JavaBaseline/amap_op xs)
-              {:expected-slowness 1.4} (d/amap [[i a] xs] (+ 1.0 (* 2.0 a)))
-              {} (doall (map (fn [x]  (+ 1.0 (* 2.0 x))) xs))))
+             {} (JavaBaseline/amap_op xs)
+             {:expected-slowness 1.4} (d/amap [[i a] xs] (+ 1.0 (* 2.0 a)))
+             {} (doall (map (fn [x]  (+ 1.0 (* 2.0 x))) xs))))
      (delay (run-benchmarks
-              {} (JavaBaseline/dot_product xs ys)
-              {:expected-slowness 1.5} (d/dot-product xs ys)
-              {} (areduce xs i ret 0.0
-                          (+ ret (* (aget xs i)
-                                    (aget ys i))))
-              {} (reduce + (map * xs ys))))]))
+             {} (JavaBaseline/dot_product xs ys)
+             {:expected-slowness 1.5} (d/dot-product xs ys)
+             {} (areduce xs i ret 0.0
+                         (+ ret (* (aget xs i)
+                                   (aget ys i))))
+             {} (reduce + (map * xs ys))))
+     (delay (run-benchmarks
+             {} (JavaBaseline/amean xs)
+             {:expected-slowness 1.1} (d/amean xs)))]))
 
 (defn print-benchmark
   "Pretty-print a benchmark comparison."
   [bench-data]
   (let [baseline (first bench-data)]
     (pprint/print-table
-      [:form :slowness :ms :variance]
-      (for [benchmark bench-data]
-        {:form (:form benchmark)
-         :slowness (format "%f"
-                           (/ (-> benchmark :results :mean first)
-                              (-> baseline :results :mean first)))
-         :ms (->> benchmark :results :mean first (* 1e3) (format "%f"))
-         :variance (->> benchmark :results :variance first
-                        (* 1e3) (format "%f"))}))))
+     [:form :slowness :ms :variance]
+     (for [benchmark bench-data]
+       {:form (:form benchmark)
+        :slowness (format "%f"
+                          (/ (-> benchmark :results :mean first)
+                             (-> baseline :results :mean first)))
+        :ms (->> benchmark :results :mean first (* 1e3) (format "%f"))
+        :variance (->> benchmark :results :variance first
+                       (* 1e3) (format "%f"))}))))
 
 (deftest benchmarks-test
   (testing "Benchmarks are appropriately fast.")
@@ -97,9 +100,9 @@
           (let [slowness (/ (-> result :results :mean first)
                             (-> baseline :results :mean first))]
             (is (< slowness expected-slowness)
-              (format "%s was too slow!"
-                      (:form result)
-                      slowness expected-slowness))))))))
+                (format "%s was too slow!"
+                        (:form result)
+                        slowness expected-slowness))))))))
 
 (defn -main
   []

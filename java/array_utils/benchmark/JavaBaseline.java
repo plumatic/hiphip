@@ -58,4 +58,7 @@ public class JavaBaseline {
     return arr;
   }
 
+  public static double amean(double[] arr) {
+    return asum_noop(arr) / arr.length;
+  }
 }
