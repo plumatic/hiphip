@@ -10,7 +10,6 @@
 
 (def type-info
   {:sg `float
-   :pl `floats
    :atype "[F"
    :constructor `float-array
    :min-value Float/MIN_VALUE

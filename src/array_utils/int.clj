@@ -10,7 +10,6 @@
 
 (def type-info
   {:sg `int
-   :pl `ints
    :atype "[I"
    :constructor `int-array
    :min-value Integer/MIN_VALUE

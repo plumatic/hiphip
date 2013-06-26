@@ -10,7 +10,6 @@
 
 (def type-info
   {:sg `long
-   :pl `longs
    :atype "[J"
    :constructor `long-array
    :min-value Long/MIN_VALUE

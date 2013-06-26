@@ -10,7 +10,6 @@
 
 (def type-info
   {:sg `double
-   :pl `doubles
    :atype "[D"
    :constructor `double-array
    :min-value Double/MIN_VALUE

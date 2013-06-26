@@ -9,7 +9,7 @@
 (defmacro alength
   "Mostly internal: alength that doesn't require reflection"
   [xs]
-  `(clojure.core/alength (~(:pl type-info) ~xs)))
+  `(clojure.core/alength ~(with-meta xs {:tag (:atype type-info)})))
 
 (defmacro areduce
   "Areduce, with for-like bindings.
