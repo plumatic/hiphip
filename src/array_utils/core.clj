@@ -22,10 +22,10 @@
 
   but i1, i2, and i3 will have the same value.
 
-  You can also include a range:
+  You can also include a range as a first element of the binding:
 
-  [[i x] xs
-   :range 0 10]
+  [:range [0 10]
+   [i x] xs]
 
   and the operation will only be applied over that range.
 
