@@ -4,10 +4,10 @@
 (defmacro typecast
   "Internal: cast a value to the array's type."
   [v]
-  `(~(:sg type-info) ~v))
+  `(~(:etype type-info) ~v))
 
 (defmacro alength
-  "Mostly internal: alength that doesn't require reflection"
+  "alength that doesn't require type hinting"
   [xs]
   `(clojure.core/alength ~(with-meta xs {:tag (:atype type-info)})))
 

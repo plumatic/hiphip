@@ -129,7 +129,7 @@
 (defmacro afill-into-hint!
   "Helper: Given bindings of the form [[idx var] array ...], maps body into the
   given array for each element of the input arrays (in the given bounds)."
-  [{:keys [sg] :as type-info} dest bindings body]
+  [{:keys [etype] :as type-info} dest bindings body]
   (if (symbol? (first bindings))
     `(afill-into-hint!
       ~type-info ~dest
@@ -140,7 +140,7 @@
       `(let ~arr-rebindings
          (doarr-hint ~type-info
                      ~bindings
-                     (aset ~dest ~(intcast i) (~sg ~body)))))))
+                     (aset ~dest ~(intcast i) (~etype ~body)))))))
 
 ;; NOTE: clojure.core/amap is slow.
 (defmacro amap-hint
