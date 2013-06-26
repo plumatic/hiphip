@@ -5,7 +5,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :java-source-paths ["java"]
-  :aliases {"test" ["do" "test," "run" "-m" "array-utils.generative.tests"]
+  :aliases {"gen-test" ["run" "-m" "array-utils.generative.run"]
+            "test" ["do" "test," "gen-test"]
             "bench" ["run" "-m" "array-utils.benchmark"]}
   :dependencies [[org.clojure/clojure "1.5.1"]]
   :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]
