@@ -9,8 +9,7 @@
 ;; # Float implementations
 
 (def type-info
-  {:sg `float
-   :pl `floats
+  {:etype `float
    :atype "[F"
    :constructor `float-array
    :min-value Float/MIN_VALUE

@@ -9,8 +9,7 @@
 ;; # Int implementations
 
 (def type-info
-  {:sg `int
-   :pl `ints
+  {:etype `int
    :atype "[I"
    :constructor `int-array
    :min-value Integer/MIN_VALUE

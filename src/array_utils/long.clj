@@ -9,8 +9,7 @@
 ;; # Long implementations
 
 (def type-info
-  {:sg `long
-   :pl `longs
+  {:etype `long
    :atype "[J"
    :constructor `long-array
    :min-value Long/MIN_VALUE

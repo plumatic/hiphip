@@ -9,8 +9,7 @@
 ;; # Double implementations
 
 (def type-info
-  {:sg `double
-   :pl `doubles
+  {:etype `double
    :atype "[D"
    :constructor `double-array
    :min-value Double/MIN_VALUE
