@@ -99,15 +99,15 @@
   ([bindings form]
      `(areduce ~bindings prod# (typecast 1) (* prod# ~form))))
 
-(defn amax
+(defmacro amax
   "Maximum over an array."
   [xs]
-  (areduce [x xs] m (:min-value type-info) (max m x)))
+  `(areduce [x# ~xs] m# ~(:min-value type-info) (if (> m# x#) m# x#)))
 
 (defn amin
   "Minimum over an array."
   [xs]
-  (areduce [x xs] m (:max-value type-info) (min m x)))
+  `(areduce [x# ~xs] m# ~(:max-value type-info) (if (< m# x#) m# x#)))
 
 (defn amean
   "Mean over an array."

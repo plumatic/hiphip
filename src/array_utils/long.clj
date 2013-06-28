@@ -6,7 +6,7 @@
   {:etype `long
    :atype "[J"
    :constructor `long-array
-   :min-value Long/MIN_VALUE
-   :max-value Long/MAX_VALUE})
+   :min-value `Long/MIN_VALUE
+   :max-value `Long/MAX_VALUE})
 
 (load "type_impl")

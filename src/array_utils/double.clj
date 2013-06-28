@@ -6,7 +6,7 @@
   {:etype `double
    :atype "[D"
    :constructor `double-array
-   :min-value Double/MIN_VALUE
-   :max-value Double/MAX_VALUE})
+   :min-value `Double/MIN_VALUE
+   :max-value `Double/MAX_VALUE})
 
 (load "type_impl")

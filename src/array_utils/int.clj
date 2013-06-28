@@ -6,7 +6,7 @@
   {:etype `int
    :atype "[I"
    :constructor `int-array
-   :min-value Integer/MIN_VALUE
-   :max-value Integer/MAX_VALUE})
+   :min-value `Integer/MIN_VALUE
+   :max-value `Integer/MAX_VALUE})
 
 (load "type_impl")

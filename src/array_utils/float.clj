@@ -6,7 +6,7 @@
   {:etype `float
    :atype "[F"
    :constructor `float-array
-   :min-value Float/MIN_VALUE
-   :max-value Float/MAX_VALUE})
+   :min-value `Float/MIN_VALUE
+   :max-value `Float/MAX_VALUE})
 
 (load "type_impl")

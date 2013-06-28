@@ -73,7 +73,10 @@
              {} (reduce + (map * xs ys))))
      (delay (run-benchmarks
              {} (JavaBaseline/amean xs)
-             {:expected-slowness 1.1} (d/amean xs)))]))
+             {:expected-slowness 1.1} (d/amean xs)))
+     (delay (run-benchmarks
+             {} (JavaBaseline/amax xs)
+             {:expected-slowness 1.7} (d/amax xs)))]))
 
 (defn print-benchmark
   "Pretty-print a benchmark comparison."
