@@ -104,7 +104,7 @@
   [xs]
   `(areduce [x# ~xs] m# ~(:min-value type-info) (if (> m# x#) m# x#)))
 
-(defn amin
+(defmacro amin
   "Minimum over an array."
   [xs]
   `(areduce [x# ~xs] m# ~(:max-value type-info) (if (< m# x#) m# x#)))
