@@ -77,10 +77,11 @@
     -- with array-sysm in the order provided in the input.
    :value-bindings - bindings [array-val array-sym ...
                                extra-index-sym index-sym]"
-  [type-info index-sym bindings]
+  [type-info bindings]
   (assert-iae (even? (count bindings))
               "Array binding %s requires an even number of forms" bindings)
-  (let [start-sym (typed-gensym "start-sym" long)
+  (let [index-sym (gensym "i")
+        start-sym (typed-gensym "start-sym" long)
         stop-sym (typed-gensym "stop-sym" long)
         {:keys [range-exprs
                 array-bindings
@@ -98,7 +99,8 @@
                                      (assert-iae false "Binding has multiple range exprs: %s"
                                                  bindings))]
     (assert-iae (seq array-bindings) "Bindings must include at least one array")
-    {:start-sym start-sym
+    {:index-sym index-sym
+     :start-sym start-sym
      :stop-sym stop-sym
      :initial-bindings (into array-bindings
                              [start-sym start-expr stop-sym stop-expr])

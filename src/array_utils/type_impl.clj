@@ -37,9 +37,8 @@
   Note: The type of the accumulator will have the same semantics as those of a
   variable in a loop."
   [bindings ret init form]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info index-sym bindings)]
+  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
+        (core/parse-bindings type-info bindings)]
     `(let ~initial-bindings
        (loop [~index-sym ~start-sym ~ret ~init]
          (if (< ~index-sym ~stop-sym)
@@ -50,9 +49,8 @@
 (defmacro doarr
   "Like doseq, but with hiphip-style array bindings."
   [bindings & body]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info index-sym bindings)]
+  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
+        (core/parse-bindings type-info bindings)]
     `(let ~initial-bindings
        (loop [~index-sym ~start-sym]
          (when (< ~index-sym ~stop-sym)
@@ -64,9 +62,8 @@
    values produced by form at each step, with length equal to the range of
    the iteration."
   [bindings form]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info index-sym bindings)
+  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
+        (core/parse-bindings type-info bindings)
         fsym (first initial-bindings)
         out-sym (core/typed-gensym "out" (:atype type-info))]
     `(let ~(into initial-bindings [out-sym `(~(:constructor type-info) (- ~stop-sym ~start-sym))])
@@ -78,9 +75,8 @@
 (defmacro afill!
   "Like `amap`, but writes the output of form to the first bound array."
   [bindings form]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info index-sym bindings)]
+  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
+        (core/parse-bindings type-info bindings)]
     `(let ~initial-bindings
        (loop [~index-sym ~start-sym]
          (when (< ~index-sym ~stop-sym)
