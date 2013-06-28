@@ -32,7 +32,7 @@
 (defspec amin-returns-the-smallest-number
   amin
   [^{:tag (`array-gen)} a]
-  (assert (= (reduce min a) %))) ()
+  (assert (= (reduce min a) %)))
 
 (defspec amap-maps
   (fn [xs]
