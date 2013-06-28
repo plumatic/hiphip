@@ -44,7 +44,7 @@
              {} (JavaBaseline/afill_op xs)
              ;; Operations with ints are slow, not sure why. This could be a
              ;; major point of improvement.
-             {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ 1.0 (* 2.0 i)))
+             {:expected-slowness 4.5} (d/afill! [[i a] xs] (+ 1.0 (* 2.0 i)))
              {} (dotimes [i (alength xs)] (aset xs i (+ 1.0 (* 2.0 i))))))
      (delay (run-benchmarks
              ;; For some reason this Java optimizes to *very fast*,
