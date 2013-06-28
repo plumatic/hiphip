@@ -2,7 +2,7 @@
       :author "EHF"}
   array-utils.double
   (:use array-utils.core)
-  (:refer-clojure :exclude [amap areduce alength]))
+  (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
 
 (set! *warn-on-reflection* true)
 

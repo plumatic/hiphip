@@ -32,7 +32,7 @@
 (defspec amin-returns-the-smallest-number
   amin
   [^{:tag (`array-gen)} a]
-  (assert (= (reduce min a) %)))
+  (assert (= (reduce min a) %))) ()
 
 (defspec amap-maps
   (fn [xs]
@@ -41,7 +41,6 @@
   (do
     (assert (every? true? (map == xs (range 10e3))))
     (assert (every? true? (map == % (for [i (range 10e3)] (* 2 i)))))))
-
 
 (defspec afill!-does-in-place-replacement
   (fn [xs]

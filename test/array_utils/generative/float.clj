@@ -2,7 +2,7 @@
   (:use array-utils.float)
   (:require [clojure.test.generative :as test :refer (defspec)]
             [array-utils.generators :as gen])
-  (:refer-clojure :exclude [amap areduce alength aclone aset]))
+  (:refer-clojure :exclude [amap areduce alength aclone aset aget]))
 
 (def array-gen #(gen/farray 10e1))
 (def range-gen #(gen/frange 10e1))

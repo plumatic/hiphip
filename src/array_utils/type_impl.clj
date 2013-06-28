@@ -11,10 +11,16 @@
   [xs]
   `(clojure.core/alength ~(with-meta xs {:tag (:atype type-info)})))
 
+(defmacro aget
+  "aset that doesn't require type hinting"
+  [xs idx]
+  `(clojure.core/aget ~(with-meta xs {:tag (:atype type-info)}) ~(intcast idx)))
+
 (defmacro aset
   "aset that doesn't require type hinting"
   [xs idx val]
-  `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~idx ~val))
+  `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(intcast idx)
+                      (~(:etype type-info) ~val)))
 
 (defmacro aclone
   "aclone that doesn't require type hinting"
@@ -26,14 +32,14 @@
 
   Note: The type of the accumulator will have the same semantics as those of a
   variable in a loop."
-  [bindings ret init body]
-  `(areduce-hint ~type-info ~bindings ~ret ~init ~body))
+  [bindings ret init form]
+  `(areduce-hint ~type-info ~bindings ~ret ~init ~form))
 
 (defmacro amap
   "Builds a new array from evaluating the body at each step. Uses for-like
   bindings."
-  [bindings body]
-  `(amap-hint ~type-info ~bindings ~body))
+  [bindings form]
+  `(amap-hint ~type-info ~bindings ~form))
 
 (defmacro doarr
   "Like doseq, but for arrays. Uses for-like bindings."
@@ -43,24 +49,24 @@
 (defmacro afill!
   "Like `amap`, but with destructive mapping on the first array in the
   bindings."
-  [bindings body]
-  `(afill-hint! ~type-info ~bindings ~body))
+  [bindings form]
+  `(afill-hint! ~type-info ~bindings ~form))
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body
   expression."
   ([array]
      `(asum [a# ~array] a#))
-  ([bindings body]
-     `(areduce ~bindings sum# (typecast 0) (+ sum# ~body))))
+  ([bindings form]
+     `(areduce ~bindings sum# (typecast 0) (+ sum# ~form))))
 
 (defmacro aproduct
   "Like `(apply * xs)`, but for arrays. Supports for-each bindings and a body
   expression."
   ([array]
      `(aproduct [a# ~array] a#))
-  ([bindings body]
-     `(areduce ~bindings prod# (typecast 1) (* prod# ~body))))
+  ([bindings form]
+     `(areduce ~bindings prod# (typecast 1) (* prod# ~form))))
 
 (defn amax
   "Maximum over an array."
