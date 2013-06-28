@@ -70,10 +70,11 @@
        (loop [~index-sym ~start-sym]
          (when (< ~index-sym ~stop-sym)
            (let ~value-bindings (aset ~out-sym (unchecked-add ~start-sym ~index-sym) ~form))
-           (recur (unchecked-inc-int ~index-sym)))))))
+           (recur (unchecked-inc-int ~index-sym))))
+       ~out-sym)))
 
 (defmacro afill!
-  "Like `amap`, but writes the output of form to the first bound array."
+  "Like `amap`, but writes the output of form to the first bound array and returns it."
   [bindings form]
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
         (core/parse-bindings type-info bindings)]
@@ -81,7 +82,8 @@
        (loop [~index-sym ~start-sym]
          (when (< ~index-sym ~stop-sym)
            (let ~value-bindings (aset ~(first initial-bindings) ~index-sym ~form))
-           (recur (unchecked-inc-int ~index-sym)))))))
+           (recur (unchecked-inc-int ~index-sym))))
+       ~(first initial-bindings))))
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body
