@@ -1,12 +1,6 @@
-(ns ^{:doc "Utilities for long[]"
-      :author "EHF"}
-  array-utils.long
-  (:use array-utils.core)
+(ns array-utils.long
+  "Utilities for long arrays"
   (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
-
-(set! *warn-on-reflection* true)
-
-;; # Long implementations
 
 (def type-info
   {:etype `long

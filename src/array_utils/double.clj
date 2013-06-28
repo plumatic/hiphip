@@ -1,12 +1,6 @@
-(ns ^{:doc "Utilities for double[]"
-      :author "EHF"}
-  array-utils.double
-  (:use array-utils.core)
+(ns array-utils.double
+  "Utilities for double arrays"
   (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
-
-(set! *warn-on-reflection* true)
-
-;; # Double implementations
 
 (def type-info
   {:etype `double

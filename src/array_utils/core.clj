@@ -67,7 +67,7 @@
        :value-bindings (into (if idx-sym [idx-sym index-sym] [])
                              [val-sym `(aget ~array-sym ~(intcast index-sym))])})))
 
-(defn- parse-bindings
+(defn parse-bindings
   "Given a type, index symbol, and a vector of array bindings, generate a map with keys:
    :start-sym - a symbol bound to the iteration start point
    :stop-sym - a symbol bound to the iteration stop point
@@ -100,62 +100,6 @@
     (assert-iae (seq array-bindings) "Bindings must include at least one array")
     {:start-sym start-sym
      :stop-sym stop-sym
-     :array-bindings (into (or array-bindings [])
-                           [start-sym start-expr stop-sym stop-expr])
+     :initial-bindings (into array-bindings
+                             [start-sym start-expr stop-sym stop-expr])
      :value-bindings value-bindings}))
-
-(defmacro areduce-hint
-  "Given bindings of the form [[idx var] array ...], reduces body over variable
-  ret initialized to init."
-  [type-info bindings ret init form]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym array-bindings value-bindings]}
-        (parse-bindings type-info index-sym bindings)]
-    `(let ~array-bindings
-       (loop [~index-sym ~start-sym ~ret ~init]
-         (if (< ~index-sym ~stop-sym)
-           (recur (unchecked-inc-int ~index-sym)
-                  (let ~value-bindings ~form))
-           ~ret)))))
-
-(defmacro doarr-hint
-  "Given bindings of the form [[idx var] array ...], performs body statements
-  with bindings for each element of the array (in the given bounds)."
-  [type-info bindings & body]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym array-bindings value-bindings]}
-        (parse-bindings type-info index-sym bindings)]
-    `(let ~array-bindings
-       (loop [~index-sym ~start-sym]
-         (when (< ~index-sym ~stop-sym)
-           (let ~value-bindings ~@body)
-           (recur (unchecked-inc-int ~index-sym)))))))
-
-;; NOTE: clojure.core/amap is slow.
-(defmacro amap-hint
-  "Given bindings of the form [[idx var] array ...], maps body into a new array
-  for each element of the input arrays."
-  [{:keys [atype etype constructor] :as type-info} bindings form]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym array-bindings value-bindings]}
-        (parse-bindings type-info index-sym bindings)
-        out-sym (typed-gensym "out" (:atype type-info))]
-    `(let ~(into array-bindings [out-sym `(~constructor (alength ~(first array-bindings)))])
-       (loop [~index-sym ~start-sym]
-         (when (< ~index-sym ~stop-sym)
-           (let ~value-bindings (aset ~out-sym ~(intcast index-sym) (~etype ~form)))
-           (recur (unchecked-inc-int ~index-sym)))))))
-
-(defmacro afill-hint!
-  "Given bindings of the form [[idx var] array ...], maps body into the first
-  array (destructively!) for each element of the input arrays."
-  [{:keys [atype etype] :as type-info} bindings form]
-  (let [index-sym (gensym "i")
-        {:keys [start-sym stop-sym array-bindings value-bindings]}
-        (parse-bindings type-info index-sym bindings)
-        out-sym (typed-gensym "out" atype)]
-    `(let ~array-bindings
-       (loop [~index-sym ~start-sym]
-         (when (< ~index-sym ~stop-sym)
-           (let ~value-bindings (aset ~(first array-bindings) ~(intcast index-sym) (~etype ~form)))
-           (recur (unchecked-inc-int ~index-sym)))))))
