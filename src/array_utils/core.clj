@@ -35,7 +35,12 @@
 
 (set! *warn-on-reflection* true)
 
-(defn- intcast
+(defmacro assert-iae
+  "Like assert, but throws an IllegalArgumentException not an Error (and also takes args to format)"
+  [form & format-args]
+  `(when-not ~form (throw (IllegalArgumentException. (format ~@format-args)))))
+
+(defn intcast
   "Generate code to cast a symbol to an integer."
   [sym]
   `(clojure.lang.RT/uncheckedIntCast ~sym))
@@ -45,120 +50,58 @@
   [basis tag]
   (with-meta (gensym basis) {:tag tag}))
 
-(defn- get-range
-  "Get the :range option out of the bindings."
-  [bindings]
-  (:range (apply hash-map bindings)))
+(defn parse-binding [type-info index-sym [left right]]
+  (if (= left :range)
+    (do (assert-iae (and (vector? right) (= (count right) 2))
+                    "Invalid range binding %s; must look like :range [10 20]" right)
+        {:range-exprs right})
+    (let [[idx-sym val-sym] (if (symbol? left)
+                              [nil left]
+                              (do (assert-iae (and (vector? left) (every? symbol left))
+                                              "Invalid array binding %s: must be either a %s"
+                                              left
+                                              "val sym or pair of index and value syms")
+                                  [(first left) (second left)]))
+          array-sym (typed-gensym 'arr (:atype type-info))]
+      {:array-bindings [array-sym right]
+       :value-bindings (into (if idx-sym [idx-sym index-sym] [])
+                             [val-sym `(aget ~array-sym ~(intcast index-sym))])})))
 
-(defn- rebind-arrays
-  "Given a type and a vector of array bindings, generate symbols for the
-  arrays and array bindings to the new symbols.
-
-  This is needed so that we never duplicate the instantiation of some array
-  when someone types:
-    (afill! [a (make-array)] a)
-  If we didn't rebind, we might generate code like:
-    (dotimes [i (alength (make-array))]
-      (aset (make-array) i (aget (make-array) i)))"
+(defn parse-bindings
+  "Given a type, index symbol, and a vector of array bindings, generate a map with keys:
+   :start-sym - a symbol bound to the iteration start point
+   :stop-sym - a symbol bound to the iteration stop point
+   :initial-bindings - bindings [array-sym array-expr ...
+                                 start-sym ...
+                                 stop-sym ...]
+    -- with array-sysm in the order provided in the input.
+   :value-bindings - bindings [array-val array-sym ...
+                               extra-index-sym index-sym]"
   [type-info bindings]
-  (assert (even? (count bindings))
-          "Array binding requires an even number of forms")
-  (->>
-   ;; Bindings for each array
-   (for [[i-and-name arr] (partition 2 bindings)]
-     (if (= :range i-and-name)
-       (let [start-sym (gensym 'start)
-             stop-sym (gensym 'stop)]
-         [[[start-sym stop-sym] arr]
-          [:range [start-sym stop-sym]]])
-       (let [sym (typed-gensym 'arr (:atype type-info))]
-         [[sym arr] [i-and-name sym]])))
-   ;; Transpose
-   (apply map vector)
-   ;; Concatenate
-   (map #(vec (apply concat %)))))
+  (assert-iae (even? (count bindings))
+              "Array binding %s requires an even number of forms" bindings)
+  (let [index-sym (gensym "i")
+        start-sym (typed-gensym "start-sym" long)
+        stop-sym (typed-gensym "stop-sym" long)
+        {:keys [range-exprs
+                array-bindings
+                value-bindings]} (->> bindings
+                                      (partition 2)
+                                      (map #(parse-binding type-info index-sym %))
+                                      (apply merge-with (comp vec concat)))
+        [start-expr stop-expr] (cond (empty? range-exprs)
+                                     [0 `(alength ~(first array-bindings))]
 
-(defmacro abind
-  "Given bindings of the form [[idx var] array ...], binds `idx` to the current
-  index and `var` to the value at that index. Given only `[var array]`, binds
-  `var` to the value at that index."
-  [bindings i & body]
-  (assert (even? (count bindings))
-          "Array binding requires an even number of forms")
-  (let [array-binding
-        (fn [[i-and-name arr]]
-          (cond
-           (vector? i-and-name) [(first i-and-name) i
-                                 (second i-and-name) `(aget ~arr ~(intcast i))]
-           (symbol? i-and-name) [i-and-name `(aget ~arr ~(intcast i))]
-           ;; Ignore keywords like :range
-           (keyword? i-and-name) nil
-           :else (assert false
-                         (format "Bad array binding form: %s" i-and-name))))]
-    `(let ~(vec (mapcat array-binding (partition 2 bindings)))
-       ~@body)))
+                                     (= 2 (count range-exprs))
+                                     range-exprs
 
-(defmacro areduce-hint
-  "Given bindings of the form [[idx var] array ...], reduces body over variable
-  ret initialized to init."
-  [type-info bindings ret init body]
-  (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)
-        [start stop] (for [s (or (get-range bindings)
-                                 [0 `(alength ~(second bindings))])]
-                       `(long ~s))]
-    `(let ~arr-rebindings
-       (loop [i# ~start ~ret ~init]
-         (if (< i# ~stop)
-           (recur (unchecked-inc-int i#) (abind ~bindings i# ~body))
-           ~ret)))))
-
-(defmacro doarr-hint
-  "Given bindings of the form [[idx var] array ...], performs body statements
-  with bindings for each element of the array (in the given bounds)."
-  [type-info bindings & body]
-  (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)
-        [start stop] (for [s (or (get-range bindings)
-                                 [0 `(alength ~(second bindings))])]
-                       `(long ~s))]
-    `(let ~arr-rebindings
-       (loop [i# ~start]
-         (when (< i# ~stop)
-           (abind ~bindings i# ~@body)
-           (recur (unchecked-inc-int i#)))))))
-
-(defmacro afill-into-hint!
-  "Helper: Given bindings of the form [[idx var] array ...], maps body into the
-  given array for each element of the input arrays (in the given bounds)."
-  [{:keys [etype] :as type-info} dest bindings body]
-  (if (symbol? (first bindings))
-    `(afill-into-hint!
-      ~type-info ~dest
-      ~(assoc bindings 0 [(gensym 'i) (first bindings)])
-      ~body)
-    (let [[arr-rebindings bindings] (rebind-arrays type-info bindings)
-          i (ffirst bindings)]
-      `(let ~arr-rebindings
-         (doarr-hint ~type-info
-                     ~bindings
-                     (aset ~dest ~(intcast i) (~etype ~body)))))))
-
-;; NOTE: clojure.core/amap is slow.
-(defmacro amap-hint
-  "Given bindings of the form [[idx var] array ...], maps body into a new array
-  for each element of the input arrays."
-  [{:keys [constructor] :as type-info} bindings body]
-  (let [arr (typed-gensym 'arr (:atype type-info))
-        anew (typed-gensym 'anew (:atype type-info))]
-    `(let [~arr ~(second bindings)
-           ~anew (~constructor (alength ~arr))]
-       (afill-into-hint! ~type-info ~anew
-                         ~(assoc bindings 1 arr) ~body))))
-
-(defmacro afill-hint!
-  "Given bindings of the form [[idx var] array ...], maps body into the first
-  array (destructively!) for each element of the input arrays."
-  [type-info bindings body]
-  (let [arr (typed-gensym 'a (:atype type-info))]
-    `(let [~arr ~(second bindings)]
-       (afill-into-hint! ~type-info ~arr
-                         ~(assoc bindings 1 arr) ~body))))
+                                     :else
+                                     (assert-iae false "Binding has multiple range exprs: %s"
+                                                 bindings))]
+    (assert-iae (seq array-bindings) "Bindings must include at least one array")
+    {:index-sym index-sym
+     :start-sym start-sym
+     :stop-sym stop-sym
+     :initial-bindings (into array-bindings
+                             [start-sym start-expr stop-sym stop-expr])
+     :value-bindings value-bindings}))

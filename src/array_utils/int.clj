@@ -1,18 +1,12 @@
-(ns ^{:doc "Utilities for int[]"
-      :author "EHF"}
-  array-utils.int
-  (:use array-utils.core)
-  (:refer-clojure :exclude [amap areduce alength]))
-
-(set! *warn-on-reflection* true)
-
-;; # Int implementations
+(ns array-utils.int
+  "Utilities for int arrays"
+  (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
 
 (def type-info
   {:etype `int
    :atype "[I"
    :constructor `int-array
-   :min-value Integer/MIN_VALUE
-   :max-value Integer/MAX_VALUE})
+   :min-value `Integer/MIN_VALUE
+   :max-value `Integer/MAX_VALUE})
 
 (load "type_impl")

@@ -42,7 +42,6 @@
     (assert (every? true? (map == xs (range 10e3))))
     (assert (every? true? (map == % (for [i (range 10e3)] (* 2 i)))))))
 
-
 (defspec afill!-does-in-place-replacement
   (fn [xs]
     (let [ys (new-array (alength xs))]

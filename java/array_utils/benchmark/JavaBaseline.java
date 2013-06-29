@@ -61,4 +61,11 @@ public class JavaBaseline {
   public static double amean(double[] arr) {
     return asum_noop(arr) / arr.length;
   }
+  
+  public static double amax(double[] arr) {
+    double m = Double.MIN_VALUE;
+    for (double d : arr)
+      if (d > m) m = d;
+    return m;
+  }
 }
