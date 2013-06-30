@@ -4,6 +4,7 @@
   (:use clojure.test)
   (:require [array-utils.double :as d]
             [array-utils.long :as l]
+            [array-utils.core :as core]
             [array-utils.generators :as gen]
             [criterium.core :as bench]
             [clojure.pprint :as pprint]
@@ -39,21 +40,20 @@
                   (+ ret (+ 1.0 (* 2.0 (aget xs i)))))
       {} (reduce + (map (fn [x] (+ 1.0 (* 2.0 x))) xs)))
      (benchmark
-      {} (JavaBaseline/afill_op xs)
+      {} (JavaBaseline/afill_inc xs)
+      {:expected-slowness 1.8} (d/afill! [a xs] (+ 1.0 a))
+      {:expected-slowness 1.8} (d/doarr [[i a] xs] (aset xs i (+ 1.0 a)))
+      {:expected-slowness 1.8} (core/dotimes-int [i 0 (alength xs)] (JavaBaseline/ainc xs i)))
+     (benchmark
+      {} (JavaBaseline/afill_value_op xs)
+      {:expected-slowness 1.8} (d/afill! [a xs] (+ 1.0 (* 2.0 a)))
+      {} (dotimes [i (alength xs)] (aset xs i (+ 1.0 (* 2.0 (aget xs i))))))
+     (benchmark
+      {} (JavaBaseline/afill_index_op xs)
       ;; Operations with ints are slow, not sure why. This could be a
       ;; major point of improvement.
       {:expected-slowness 4.5} (d/afill! [[i a] xs] (+ 1.0 (* 2.0 i)))
       {} (dotimes [i (alength xs)] (aset xs i (+ 1.0 (* 2.0 i)))))
-     (benchmark
-      ;; For some reason this Java optimizes to *very fast*,
-      ;; faster than an areduce. I'm not sure why.
-      {} (JavaBaseline/amap_inplace_op xs)
-      {:expected-slowness 1.4} (d/afill! [a xs] (* 2.0 a))
-      {:expected-slowness 1.8} (d/afill! [a xs] (+ 1.0 (* 2.0 a)))
-      {} (dotimes [i (alength xs)]
-           (aset xs i (+ 1.0 (* 2.0 (aget xs i)))))
-      ;; Operations with ints are slow, not sure why.
-      {:expected-slowness 2.4} (d/afill! [[i a] xs] (+ i (* 2.0 a))))
      (benchmark
       {} (JavaBaseline/aclone xs)
       {:expected-slowness 1.4} (d/amap [[i a] xs] a)
