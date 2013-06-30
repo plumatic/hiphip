@@ -24,7 +24,7 @@
   "aset that doesn't require type hinting"
   [xs idx val]
   `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(core/intcast idx)
-                      ~val))
+                      (typecast ~val)))
 
 (defmacro aclone
   "aclone that doesn't require type hinting"
