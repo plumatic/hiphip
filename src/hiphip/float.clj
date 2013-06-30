@@ -1,4 +1,4 @@
-(ns array-utils.float
+(ns hiphip.float
   "Utilities for float arrays"
   (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
 

@@ -1,4 +1,4 @@
-(ns array-utils.int
+(ns hiphip.int
   "Utilities for int arrays"
   (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
 

@@ -1,7 +1,7 @@
-(ns array-utils.generative.int
-  (:use array-utils.int)
+(ns hiphip.generative.int
+  (:use hiphip.int)
   (:require [clojure.test.generative :as test :refer (defspec)]
-            [array-utils.generators :as gen])
+            [hiphip.generators :as gen])
   (:refer-clojure :exclude [amap areduce alength aclone aset aget]))
 
 (def array-gen #(gen/iarray 10e2))

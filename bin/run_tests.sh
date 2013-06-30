@@ -1,2 +1,2 @@
 #!/bin/sh
-lein run -m array-utils.generative.tests
+lein run -m hiphip.generative.tests

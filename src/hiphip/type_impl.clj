@@ -2,7 +2,7 @@
 ;; per-type macros, and is loaded in each type's namespace.
 
 (set! *warn-on-reflection* true)
-(require '[array-utils.core :as core])
+(require '[hiphip.core :as core])
 
 
 (defmacro typecast

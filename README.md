@@ -1,13 +1,13 @@
-array-utils
+hiphip (array)!
 ===========
 
-`array-utils` is an array macro library for Clojure. It offers more
+`hiphip` is an array macro library for Clojure. It offers more
 elegant ways to handle primitive arrays, including both functional forms
 like `amap` and `areduce` and in-place forms like `afill!`.  The
 functions and macros require little or no manual type hinting, and they
 use a binding semantics similar to those of for (see below).
 
-`array-utils` supports multiple array types, including floats, doubles,
+`hiphip` supports multiple array types, including floats, doubles,
 ints, and longs. Feel free to make your own implementations using the
 abstractions offered in `core.clj` and `type_impl.clj`.
 
@@ -17,10 +17,10 @@ to keep using Clojure's 'map' and 'reduce'--they're more flexible.
 # Usage
 
 In your `project.clj`, add a dependency on
-`[array-utils "unreleased-version"]`. Then require a type namespace,
+`[hiphip "unreleased-version"]`. Then require a type namespace,
 e.g.
 ```clojure
-(require 'array-utils.double)
+(require 'hiphip.double)
 ```
 
 # Motivation
