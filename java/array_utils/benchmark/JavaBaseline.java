@@ -3,7 +3,10 @@ package array_utils.benchmark;
 import clojure.lang.IFn;
 
 public class JavaBaseline {
-
+  public static void ainc(double [] arr, int idx) {
+    arr[idx]++;
+  }
+  
   public static double asum_noop(double[] arr) {
     double s = 0;
     for (double d : arr) {
@@ -36,12 +39,27 @@ public class JavaBaseline {
     return s;
   }
 
-  public static double[] afill_op(double[] arr) {
+  public static double[] afill_index_op(double[] arr) {
     for (int i = 0; i < arr.length; i++) {
       arr[i] = 1.0 + i * 2.0;
     }
     return arr;
   }
+
+  public static double[] afill_inc(double[] arr) {
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] += 1.0;
+    }
+    return arr;
+  }
+
+  public static double[] afill_value_op(double[] arr) {
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = 1.0 + 2.0 * arr[i];
+    }
+    return arr;
+  }
+
 
   public static double[] amap_op(double[] arr) {
     double[] newarr = new double[arr.length];
@@ -49,13 +67,6 @@ public class JavaBaseline {
       newarr[i] = 1.0 + 2.0 * arr[i];
     }
     return newarr;
-  }
-
-  public static double[] amap_inplace_op(double[] arr) {
-    for (int i = 0; i < arr.length; i++) {
-      arr[i] = 1.0 + 2.0 * arr[i];
-    }
-    return arr;
   }
 
   public static double amean(double[] arr) {

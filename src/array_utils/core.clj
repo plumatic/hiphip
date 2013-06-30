@@ -105,3 +105,16 @@
      :initial-bindings (into array-bindings
                              [start-sym start-expr stop-sym stop-expr])
      :value-bindings value-bindings}))
+
+(defmacro dotimes-int
+  "Like dotimes, but faster and only works on int ranges.  Also takes an optional
+   start for the iteration."
+  [[sym & start-stop] & body]
+  (let [[start stop] (case (count start-stop)
+                       1 (cons 0 start-stop)
+                       2 start-stop)]
+    `(let [stop# (long ~stop)]
+       (loop [~sym (long ~start)]
+         (when (< ~sym stop#)
+           ~@body
+           (recur (unchecked-inc-int ~sym)))))))

@@ -24,7 +24,7 @@
   "aset that doesn't require type hinting"
   [xs idx val]
   `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(core/intcast idx)
-                      ~val))
+                      (typecast ~val)))
 
 (defmacro aclone
   "aclone that doesn't require type hinting"
@@ -52,10 +52,8 @@
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
         (core/parse-bindings type-info bindings)]
     `(let ~initial-bindings
-       (loop [~index-sym ~start-sym]
-         (when (< ~index-sym ~stop-sym)
-           (let ~value-bindings ~@body)
-           (recur (unchecked-inc-int ~index-sym)))))))
+       (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
+                         (let ~value-bindings ~@body)))))
 
 (defmacro amap
   "Like for, but with hiphip-style array bindings.  Builds a new array from
@@ -67,10 +65,8 @@
         fsym (first initial-bindings)
         out-sym (core/typed-gensym "out" (:atype type-info))]
     `(let ~(into initial-bindings [out-sym `(~(:constructor type-info) (- ~stop-sym ~start-sym))])
-       (loop [~index-sym ~start-sym]
-         (when (< ~index-sym ~stop-sym)
-           (let ~value-bindings (aset ~out-sym (unchecked-add ~start-sym ~index-sym) ~form))
-           (recur (unchecked-inc-int ~index-sym))))
+       (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
+                         (let ~value-bindings (aset ~out-sym (unchecked-add ~start-sym ~index-sym) ~form)))
        ~out-sym)))
 
 (defmacro afill!
@@ -79,10 +75,8 @@
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
         (core/parse-bindings type-info bindings)]
     `(let ~initial-bindings
-       (loop [~index-sym ~start-sym]
-         (when (< ~index-sym ~stop-sym)
-           (let ~value-bindings (aset ~(first initial-bindings) ~index-sym ~form))
-           (recur (unchecked-inc-int ~index-sym))))
+       (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
+                         (let ~value-bindings (aset ~(first initial-bindings) ~index-sym ~form)))
        ~(first initial-bindings))))
 
 (defmacro asum

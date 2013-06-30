@@ -25,12 +25,14 @@
   (assert (= (/ (reduce + xs) (count xs)) %)))
 
 (defspec amax-returns-the-largest-number
-  amax
+  (fn [a]
+     (amax a))
   [^{:tag (`array-gen)} a]
   (assert (= (reduce max a) %)))
 
 (defspec amin-returns-the-smallest-number
-  amin
+  (fn [a]
+    (amin a))
   [^{:tag (`array-gen)} a]
   (assert (= (reduce min a) %)))
 
