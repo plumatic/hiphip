@@ -74,6 +74,7 @@
       {:expected-slowness 1.1} (d/amean xs))
      (benchmark
       {} (JavaBaseline/amax xs)
+      ;; amax is inexplicably slower with *unchecked-math* on...
       {:expected-slowness 1.7} (d/amax xs))]))
 
 (defn print-benchmark
