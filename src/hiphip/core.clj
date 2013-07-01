@@ -1,4 +1,4 @@
-(ns array-utils.core
+(ns hiphip.core
   "A note on bindings: All these macros use binding forms that look like:
 
   [[i x] xs

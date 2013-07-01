@@ -1,15 +1,15 @@
-(ns ^{:doc "Benchmarking suite for array-utils"
+(ns ^{:doc "Benchmarking suite for hiphip"
       :author "EHF"}
-  array-utils.benchmark
+  hiphip.benchmark
   (:use clojure.test)
-  (:require [array-utils.double :as d]
-            [array-utils.long :as l]
-            [array-utils.core :as core]
-            [array-utils.generators :as gen]
+  (:require [hiphip.double :as d]
+            [hiphip.long :as l]
+            [hiphip.core :as core]
+            [hiphip.generators :as gen]
             [criterium.core :as bench]
             [clojure.pprint :as pprint]
             [clojure.test :refer [deftest is testing]])
-  (:import array_utils.benchmark.JavaBaseline))
+  (:import hiphip.benchmark.JavaBaseline))
 
 (defmacro benchmark
   "Declare a benchmark, a list [options form options form ...]"

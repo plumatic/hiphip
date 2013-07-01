@@ -1,4 +1,4 @@
-(ns array-utils.generators
+(ns hiphip.generators
   (:require [clojure.data.generators :as gen]))
 
 ;; # Generators

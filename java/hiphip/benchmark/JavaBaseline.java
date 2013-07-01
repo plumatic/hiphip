@@ -1,4 +1,4 @@
-package array_utils.benchmark;
+package hiphip.benchmark;
 
 import clojure.lang.IFn;
 

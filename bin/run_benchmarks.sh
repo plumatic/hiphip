@@ -1,2 +1,2 @@
 #!/bin/sh
-lein run -m array-utils.benchmark
+lein run -m hiphip.benchmark

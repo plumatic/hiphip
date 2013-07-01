@@ -2,7 +2,7 @@
 ;; per-type macros, and is loaded in each type's namespace.
 
 (set! *warn-on-reflection* true)
-(require '[array-utils.core :as core])
+(require '[hiphip.core :as core])
 
 
 (defmacro typecast
@@ -98,12 +98,12 @@
 (defmacro amax
   "Maximum over an array."
   [xs]
-  `(areduce [x# ~xs] m# ~(:min-value type-info) (if (> m# x#) m# x#)))
+  `(areduce [x# ~xs] m# ~(:min-value type-info) (~(:etype type-info) (if (> m# x#) m# x#))))
 
 (defmacro amin
   "Minimum over an array."
   [xs]
-  `(areduce [x# ~xs] m# ~(:max-value type-info) (if (< m# x#) m# x#)))
+  `(areduce [x# ~xs] m# ~(:max-value type-info) (~(:etype type-info) (if (< m# x#) m# x#))))
 
 (defn amean
   "Mean over an array."

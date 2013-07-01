@@ -1,4 +1,4 @@
-(ns array-utils.long
+(ns hiphip.long
   "Utilities for long arrays"
   (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
 
