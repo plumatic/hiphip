@@ -6,8 +6,10 @@
    ...]
 
   This binds i to the index and x and y to the ith element of xs and ys,
-  respectively. You can include index variables wherever and whenever you
-  want, so you can do:
+  respectively. Note that unlike for/doseq, iteration over multiple arrays
+  is parallel rather than nested.
+
+  You can include index variables wherever and whenever you want, so you can do:
 
   [x xs
    y ys
@@ -27,7 +29,8 @@
   [:range [0 10]
    [i x] xs]
 
-  and the operation will only be applied over that range.
+  and the operation will only be applied over that range. The default range
+  is from 0 to the length of the first array in the binding.
 
   All of these are internal tools that require type information as
   their first argument. Refer to type_impl.clj, double.clj, long.clj
@@ -118,3 +121,5 @@
          (when (< ~sym stop#)
            ~@body
            (recur (unchecked-inc-int ~sym)))))))
+
+(set! *warn-on-reflection* false)

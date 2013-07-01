@@ -4,29 +4,29 @@
 (set! *warn-on-reflection* true)
 (require '[hiphip.core :as core])
 
-
-(defmacro typecast
-  "Internal: cast a value to the array's type."
-  [v]
-  `(~(:etype type-info) ~v))
-
-(defmacro alength
+(definline alength
   "alength that doesn't require type hinting"
   [xs]
   `(clojure.core/alength ~(with-meta xs {:tag (:atype type-info)})))
 
-(defmacro aget
+(definline aget
   "aset that doesn't require type hinting"
   [xs idx]
   `(clojure.core/aget ~(with-meta xs {:tag (:atype type-info)}) ~(core/intcast idx)))
 
-(defmacro aset
+(definline aset
   "aset that doesn't require type hinting"
   [xs idx val]
   `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(core/intcast idx)
-                      (typecast ~val)))
+                      (~(:etype type-info) ~val)))
 
-(defmacro aclone
+(definline ainc
+  "Increment the value of xs at idx by val"
+  [xs idx val]
+  `(let [idx# ~idx]
+     (aset ~xs idx# (+ (~(:etype type-info) ~val) (aget ~xs idx#)))))
+
+(definline aclone
   "aclone that doesn't require type hinting"
   [xs]
   `(clojure.core/aclone ~(with-meta xs {:tag (:atype type-info)})))
@@ -54,6 +54,14 @@
     `(let ~initial-bindings
        (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings ~@body)))))
+
+(defmacro amake
+  "Make a new array of length len and fill it with values computed by expr."
+  [[idx len] expr]
+  `(let [len# ~(core/intcast len)
+         a# (~(:constructor type-info) len#)]
+     (core/dotimes-int [~idx len#] (aset a# ~idx ~expr))
+     a#))
 
 (defmacro amap
   "Like for, but with hiphip-style array bindings.  Builds a new array from
@@ -85,7 +93,7 @@
   ([array]
      `(asum [a# ~array] a#))
   ([bindings form]
-     `(areduce ~bindings sum# (typecast 0) (+ sum# ~form))))
+     `(areduce ~bindings sum# (~(:etype type-info) 0) (+ sum# ~form))))
 
 (defmacro aproduct
   "Like `(apply * xs)`, but for arrays. Supports for-each bindings and a body
@@ -93,7 +101,7 @@
   ([array]
      `(aproduct [a# ~array] a#))
   ([bindings form]
-     `(areduce ~bindings prod# (typecast 1) (* prod# ~form))))
+     `(areduce ~bindings prod# (~(:etype type-info) 1) (* prod# ~form))))
 
 (defmacro amax
   "Maximum over an array."
@@ -114,3 +122,5 @@
   "Dot product of two arrays."
   [xs ys]
   (asum [x xs y ys] (* x y)))
+
+(set! *warn-on-reflection* false)

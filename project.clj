@@ -15,7 +15,7 @@
             "test" ["do" "test," "gen-test"]
             "bench" ["run" "-m" "hiphip.benchmark"]}
   :warn-on-reflection true
-  ;; Clear out devault JVM opts set by leiningen that trade startup time for 
-  ;; optimization, making Clojure array code run slow.  
+  ;; Clear out devault JVM opts set by leiningen that trade startup time for
+  ;; optimization, making Clojure array code run slow.
   ;; You probably want this in your project too.
   :jvm-opts ^:replace [])
