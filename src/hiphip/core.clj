@@ -43,6 +43,12 @@
   [form & format-args]
   `(when-not ~form (throw (IllegalArgumentException. (format ~@format-args)))))
 
+(defn- find-shadows
+  "Finds common variables in two bindings"
+  [a b]
+  (let [[a-vars b-vars] (map (partial take-nth 2) [a b])]
+    (some (set a-vars) b-vars)))
+
 (defn intcast
   "Generate code to cast a symbol to an integer."
   [sym]
@@ -54,10 +60,20 @@
   (with-meta (gensym basis) {:tag tag}))
 
 (defn parse-binding [type-info index-sym [left right]]
-  (if (= left :range)
+  (case left
+    :let
+    (do (assert-iae (and (vector? right) (even? (count right)))
+                    "Invalid let bindings %s; must look like :let [a 1 b 2]" right)
+        (let [transform (fn [[sym val]] `[~sym (~(:etype type-info) ~val)])
+              bindings (->>  (partition 2 right)
+                             (mapcat transform)
+                             (into []))]
+          {:let-bindings bindings}))
+    :range
     (do (assert-iae (and (vector? right) (= (count right) 2))
                     "Invalid range binding %s; must look like :range [10 20]" right)
         {:range-exprs right})
+    ;; else
     (let [[idx-sym val-sym] (if (symbol? left)
                               [nil left]
                               (do (assert-iae (and (vector? left) (every? symbol left))
@@ -88,7 +104,8 @@
         stop-sym (typed-gensym "stop-sym" long)
         {:keys [range-exprs
                 array-bindings
-                value-bindings]} (->> bindings
+                value-bindings
+                let-bindings]} (->> bindings
                                       (partition 2)
                                       (map #(parse-binding type-info index-sym %))
                                       (apply merge-with (comp vec concat)))
@@ -102,12 +119,18 @@
                                      (assert-iae false "Binding has multiple range exprs: %s"
                                                  bindings))]
     (assert-iae (seq array-bindings) "Bindings must include at least one array")
+    ;; Do some analysis in case there are conflicting variables
+    (let [shadows (find-shadows value-bindings let-bindings)]
+      (assert-iae (not shadows)
+                  "Variable `%s` shadowed by the let-binding in %s"
+                  shadows
+                  bindings))
     {:index-sym index-sym
      :start-sym start-sym
      :stop-sym stop-sym
      :initial-bindings (into array-bindings
                              [start-sym start-expr stop-sym stop-expr])
-     :value-bindings value-bindings}))
+     :value-bindings (into value-bindings let-bindings)}))
 
 (defmacro dotimes-int
   "Like dotimes, but faster and only works on int ranges.  Also takes an optional
