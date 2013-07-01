@@ -122,3 +122,5 @@
   "Dot product of two arrays."
   [xs ys]
   (asum [x xs y ys] (* x y)))
+
+(set! *warn-on-reflection* false)

@@ -118,3 +118,5 @@
          (when (< ~sym stop#)
            ~@body
            (recur (unchecked-inc-int ~sym)))))))
+
+(set! *warn-on-reflection* false)
