@@ -98,12 +98,12 @@
 (defmacro amax
   "Maximum over an array."
   [xs]
-  `(areduce [x# ~xs] m# ~(:min-value type-info) (if (> m# x#) m# x#)))
+  `(areduce [x# ~xs] m# ~(:min-value type-info) (~(:etype type-info) (if (> m# x#) m# x#))))
 
 (defmacro amin
   "Minimum over an array."
   [xs]
-  `(areduce [x# ~xs] m# ~(:max-value type-info) (if (< m# x#) m# x#)))
+  `(areduce [x# ~xs] m# ~(:max-value type-info) (~(:etype type-info) (if (< m# x#) m# x#))))
 
 (defn amean
   "Mean over an array."
