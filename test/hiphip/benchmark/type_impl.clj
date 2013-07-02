@@ -2,6 +2,8 @@
 ;; Assumes the appropriate hiphip array type ns has been aliased as 'hiphip',
 ;; and the appropriate Java baseline class has been imported as 'JavaBaseline'
 
+(set! *unchecked-math* true)
+
 (def type-info hiphip/type-info
   #_{:etype `double
      :atype "[D"
@@ -18,10 +20,12 @@
       [~@(for [[options expr] (partition 2 exprs)]
            `{:form (quote ~expr)
              :options ~options
-             :results (bench/quick-benchmark ~expr
+             :results (try (bench/quick-benchmark ~expr
                                              {} #_ {:samples 3
                                                     :target-execution-time 100000000
-                                                    :warmup-jit-period 500000000})})])))
+                                                    :warmup-jit-period 500000000})
+                        (catch Exception e#
+                          {:exception e#}))})])))
 
 (defmacro gen-array* []
   `(defn ^{:tag ~(:atype type-info)} gen-array [size# offset#]
@@ -115,13 +119,17 @@
     (pprint/print-table
      [:form :slowness :ms :variance]
      (for [benchmark bench-data]
-       {:form (:form benchmark)
-        :slowness (format "%f"
-                          (/ (-> benchmark :results :mean first)
-                             (-> baseline :results :mean first)))
-        :ms (->> benchmark :results :mean first (* 1e3) (format "%f"))
-        :variance (->> benchmark :results :variance first
-                       (* 1e3) (format "%f"))}))))
+       (into {:form (:form benchmark)}
+             (if (get-in benchmark [:results :exception])
+               {:slowness "exception"
+                :ms "exception"
+                :variance "exception"}
+               {:slowness (format "%f"
+                                  (/ (-> benchmark :results :mean first)
+                                     (-> baseline :results :mean first)))
+                :ms (->> benchmark :results :mean first (* 1e3) (format "%f"))
+                :variance (->> benchmark :results :variance first
+                               (* 1e3) (format "%f"))}))))))
 
 (deftest benchmarks-test
   (testing "Benchmarks are appropriately fast."

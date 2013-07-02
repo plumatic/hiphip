@@ -113,14 +113,16 @@
   [xs]
   `(areduce [x# ~xs] m# ~(:max-value type-info) (~(:etype type-info) (if (< m# x#) m# x#))))
 
-(defn amean
+(defmacro amean
   "Mean over an array."
   [xs]
-  (/ (asum xs) (alength xs)))
+  `(let [xs# ~xs]
+     (/ (asum xs#) (alength xs#))))
 
-(defn dot-product
+(defmacro dot-product
   "Dot product of two arrays."
   [xs ys]
-  (asum [x xs y ys] (* x y)))
+  `(let [xs# ~xs ys# ~ys]
+     (asum [x# xs# y# ys#] (* x# y#))))
 
 (set! *warn-on-reflection* false)
