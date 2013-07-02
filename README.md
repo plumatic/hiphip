@@ -87,6 +87,24 @@ You can also include a range in your bindings, e.g.
 
 Then the operation will only be applied over that range.
 
+## Let
+
+The bindings also support `:let`, which works like a regular `let` in
+the inner loop, but casts to the array type (for speedy math), e.g.
+
+```clojure
+(au/afill!
+  [x xs
+  :let [alpha 5 delta (- x 9)]]
+  (* alpha delta)) 
+```
+
+Be aware that `:let` explicitly disallows shadowing the array
+bindings. `(afill! [x xs :let [x 5] ] x)` returns an
+`IllegalArgumentException`. Do also note that destructuring syntax is
+currently not supported.
+
+
 # Examples
 
 ## areduce
