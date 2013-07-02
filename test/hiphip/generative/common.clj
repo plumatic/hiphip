@@ -26,7 +26,7 @@
 
 (defspec amax-returns-the-largest-number
   (fn [a]
-     (amax a))
+    (amax a))
   [^{:tag (`array-gen)} a]
   (assert (= (reduce max a) %)))
 
