@@ -94,7 +94,7 @@
          {} (reduce + ~'xs))
         (benchmark
          {} (JavaBaseline/asum_square ~'xs)
-         {:expected-slowness 1.1} (hiphip/asum [~'x ~'xs] (+ ~'x ~'x)))
+         {:expected-slowness 1.1} (hiphip/asum [~'x ~'xs] (* ~'x ~'x)))
         (benchmark
          {} (JavaBaseline/aproduct ~'xs)
          {:expected-slowness 1.1} (hiphip/aproduct ~'xs))

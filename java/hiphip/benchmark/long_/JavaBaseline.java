@@ -1,4 +1,4 @@
-package hiphip.benchmark.lng;
+package hiphip.benchmark.long_;
 
 import clojure.lang.IFn;
 

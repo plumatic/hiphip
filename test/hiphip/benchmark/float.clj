@@ -1,10 +1,10 @@
-(ns hiphip.benchmark.long
+(ns hiphip.benchmark.float
   "Benchmarks for double arrays"
   (:use clojure.test)
   (:require
-   [hiphip.long :as hiphip]
+   [hiphip.float :as hiphip]
    [criterium.core :as bench]
    [clojure.pprint :as pprint])
-  (:import hiphip.benchmark.long_.JavaBaseline))
+  (:import hiphip.benchmark.float_.JavaBaseline))
 
 (load "type_impl")

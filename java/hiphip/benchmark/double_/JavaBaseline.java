@@ -1,4 +1,4 @@
-package hiphip.benchmark.dbl;
+package hiphip.benchmark.double_;
 
 import clojure.lang.IFn;
 
