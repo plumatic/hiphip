@@ -11,12 +11,13 @@ public class JavaBaseline {
     return arr[idx];
   }
 
-  public static void aset(double [] arr, int idx, double v) {
+  public static double aset(double [] arr, int idx, double v) {
     arr[idx] = v;
+    return v;
   }
 
-  public static void ainc(double [] arr, int idx, int v) {
-    arr[idx]+=v;
+  public static double ainc(double [] arr, int idx, int v) {
+    return arr[idx]+=v;
   }
   
   public static double[] aclone(double [] arr) {

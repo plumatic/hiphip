@@ -4,6 +4,11 @@
 (set! *warn-on-reflection* true)
 (require '[hiphip.core :as core])
 
+(definline aclone
+  "aclone that doesn't require type hinting"
+  [xs]
+  `(clojure.core/aclone ~(with-meta xs {:tag (:atype type-info)})))
+
 (definline alength
   "alength that doesn't require type hinting"
   [xs]
@@ -25,11 +30,6 @@
   [xs idx val]
   `(let [idx# ~idx]
      (aset ~xs idx# (+ (~(:etype type-info) ~val) (aget ~xs idx#)))))
-
-(definline aclone
-  "aclone that doesn't require type hinting"
-  [xs]
-  `(clojure.core/aclone ~(with-meta xs {:tag (:atype type-info)})))
 
 (defmacro areduce
   "Areduce, with hiphip-style array bindings.
