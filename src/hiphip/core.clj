@@ -64,11 +64,9 @@
     :let
     (do (assert-iae (and (vector? right) (even? (count right)))
                     "Invalid let bindings %s; must look like :let [a 1 b 2]" right)
-        (let [transform (fn [[sym val]] `[~sym (~(:etype type-info) ~val)])
-              bindings (->>  (partition 2 right)
-                             (mapcat transform)
-                             (into []))]
-          {:let-bindings bindings}))
+        {:let-bindings (->> (partition 2 right)
+                            (mapcat (fn [[sym val]] `[~sym (~(:etype type-info) ~val)]))
+                            vec)})
     :range
     (do (assert-iae (and (vector? right) (= (count right) 2))
                     "Invalid range binding %s; must look like :range [10 20]" right)
@@ -106,9 +104,9 @@
                 array-bindings
                 value-bindings
                 let-bindings]} (->> bindings
-                                      (partition 2)
-                                      (map #(parse-binding type-info index-sym %))
-                                      (apply merge-with (comp vec concat)))
+                                    (partition 2)
+                                    (map #(parse-binding type-info index-sym %))
+                                    (apply merge-with (comp vec concat)))
         [start-expr stop-expr] (cond (empty? range-exprs)
                                      [0 `(alength ~(first array-bindings))]
 
