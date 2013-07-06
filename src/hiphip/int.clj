@@ -1,6 +1,7 @@
 (ns hiphip.int
   "Utilities for int arrays"
-  (:refer-clojure :exclude [amap areduce alength aget aset aclone]))
+  (:refer-clojure :exclude [amap areduce alength aget aset aclone])
+  (:import hiphip.int_.JavaBaseline))
 
 (def type-info
   {:etype `int

@@ -109,7 +109,6 @@
 
 (defn test-benchmark-results [[baseline & results]]
   (doseq [result results]
-    (println (slowness baseline result) (expected-slowness result))
     (when-let [expected (expected-slowness result)]
       (is (< (slowness baseline result) expected)
           (str "expr " (:expr result) " was too slow")))))
@@ -245,17 +244,44 @@
   (JavaBaseline/aproduct xs)
   1.1 (hiphip/aproduct xs))
 
+(comment
+  (defmacro amax
+    "Maximum over an array."
+    [xs]
+    `(areduce [x# ~xs] m# ~(:min-value type-info) (~(:etype type-info) (if (> m# x#) m# x#))))
+
+  (defmacro amax2
+    "Maximum over an array."
+    [xs]
+    `(aget ~xs (JavaBaseline/maxIndex ~xs)))
+
+  (defmacro amax3
+    "Maximum over an array."
+    [xs]
+    `(let [xs# ~xs
+           len# (alength xs#)]
+       (loop [i# 1 m# (aget xs# 0)]
+         (if (== i# len#)
+           m#
+           (let [v# (aget xs# i#)]
+             (if (> v# m#)
+               (recur (unchecked-inc-int i#) v#)
+               (recur (unchecked-inc-int i#) m#))))))))
+
 (defbenchmark amax
   (JavaBaseline/amax xs)
   ;; amax is inexplicably slower with *unchecked-math* on...
-  1.7 (hiphip/amax xs))
+  1.7 (hiphip/amax xs)
+  ;; 1.7 (hiphip/amax2 xs)
+  ;; 1.7 (hiphip/amax3 xs)
+  )
 
 (defbenchmark amin
   (JavaBaseline/amin xs)
   ;; amax is inexplicably slower with *unchecked-math* on...
   1.7 (hiphip/amin xs))
 
-(defbenchmark amin
+(defbenchmark amean
   (JavaBaseline/amean xs)
   1.1 (hiphip/amean xs))
 

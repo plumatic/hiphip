@@ -103,16 +103,6 @@
   ([bindings form]
      `(areduce ~bindings prod# (~(:etype type-info) 1) (* prod# ~form))))
 
-(defmacro amax
-  "Maximum over an array."
-  [xs]
-  `(areduce [x# ~xs] m# ~(:min-value type-info) (~(:etype type-info) (if (> m# x#) m# x#))))
-
-(defmacro amin
-  "Minimum over an array."
-  [xs]
-  `(areduce [x# ~xs] m# ~(:max-value type-info) (~(:etype type-info) (if (< m# x#) m# x#))))
-
 (defmacro amean
   "Mean over an array."
   [xs]
@@ -124,5 +114,53 @@
   [xs ys]
   `(let [xs# ~xs ys# ~ys]
      (asum [x# xs# y# ys#] (* x# y#))))
+
+(definline amax-index
+  "Maximum over an array.
+   Uses Java for now for maximum efficiency.
+   See benchmarks for our current best performance in pure Clojure."
+  [xs]
+  `(JavaBaseline/maxIndex ~xs))
+
+(definline amax
+  "Maximum over an array."
+  [xs]
+  `(let [xs# ~xs] (aget xs# (amax-index xs#))))
+
+(definline amin-index
+  "Maximum over an array.
+   Uses Java for now for maximum efficiency.
+   See benchmarks for our current best performance in pure Clojure."
+  [xs]
+  `(JavaBaseline/minIndex ~xs))
+
+(definline amin
+  "Maximum over an array."
+  [xs]
+  `(let [xs# ~xs] (aget xs# (amin-index xs#))))
+
+(defmacro apartition
+  "Mutate array xs in range [start stop) so that elements less than pivot come first,
+   followed by elements equal to pivot, followed by elements greater than pivot.
+   Returns 1 + the smallest index pointing at an element > pivot after the partitioning."
+  ([xs pivot]
+     `(let [xs# ~xs] (apartition xs# 0 (alength xs#) pivot)))
+  ([xs start stop pivot]
+     `(JavaBaseline/partition ~xs ~start ~stop ~pivot)))
+
+(defmacro apartition-indices
+  "Like partition, but (create and) mutate an array of indices into arr rather than
+   modifying array directly."
+  ([xs pivot]
+     `(let [xs# ~xs] (apartition-indices xs# 0 (alength xs#) pivot)))
+  ([indices xs pivot]
+     `(let [xs# ~xs] (apartition-indices indices# xs# 0 (alength xs#) pivot)))
+  ([xs start stop pivot]
+     `(let [xs# ~xs
+            indices# (hiphip.IndexArrays/make ~start ~stop)]
+        (apartition-indices indices# xs# 0 (alength indices#) pivot)))
+  ([indices xs start stop pivot]
+     `(JavaBaseline/partition ~indices ~xs ~start ~stop ~pivot)))
+
 
 (set! *warn-on-reflection* false)

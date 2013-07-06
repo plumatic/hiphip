@@ -5,6 +5,6 @@
    [hiphip.long :as hiphip]
    [criterium.core :as bench]
    [clojure.pprint :as pprint])
-  (:import hiphip.benchmark.long_.JavaBaseline))
+  (:import hiphip.long_.JavaBaseline))
 
 (load "type_impl")
