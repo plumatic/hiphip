@@ -1,6 +1,10 @@
 package hiphip;
 
 public class IndexArrays {
+  public static int length(int[] xs) {
+    return xs.length;
+  }
+
   public static int[] make(int start, int stop) {
     int len = stop - start;
     int [] ret = new int [len];
