@@ -1,4 +1,4 @@
-(ns hiphip.core
+(ns hiphip.impl.core
   "A note on bindings: All these macros use binding forms that look like:
 
   [[i x] xs

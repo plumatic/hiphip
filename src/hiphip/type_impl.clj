@@ -3,7 +3,7 @@
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
-(require '[hiphip.core :as core])
+(require '[hiphip.impl.core :as impl])
 
 (definline aclone
   "aclone that doesn't require type hinting"
@@ -18,12 +18,12 @@
 (definline aget
   "aset that doesn't require type hinting"
   [xs idx]
-  `(clojure.core/aget ~(with-meta xs {:tag (:atype type-info)}) ~(core/intcast idx)))
+  `(clojure.core/aget ~(with-meta xs {:tag (:atype type-info)}) ~(impl/intcast idx)))
 
 (definline aset
   "aset that doesn't require type hinting"
   [xs idx val]
-  `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(core/intcast idx)
+  `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(impl/intcast idx)
                       (~(:etype type-info) ~val)))
 
 (definline ainc
@@ -32,6 +32,14 @@
   `(let [idx# ~idx]
      (aset ~xs idx# (+ (~(:etype type-info) ~val) (aget ~xs idx#)))))
 
+(defmacro amake
+  "Make a new array of length len and fill it with values computed by expr."
+  [[idx len] expr]
+  `(let [len# ~(impl/intcast len)
+         a# (~(:constructor type-info) len#)]
+     (impl/dotimes-int [~idx len#] (aset a# ~idx ~expr))
+     a#))
+
 (defmacro areduce
   "Areduce, with hiphip-style array bindings.
 
@@ -39,7 +47,7 @@
   variable in a loop."
   [bindings ret init form]
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info bindings)]
+        (impl/parse-bindings type-info bindings)]
     `(let ~initial-bindings
        (loop [~index-sym ~start-sym ~ret ~init]
          (if (< ~index-sym ~stop-sym)
@@ -51,18 +59,10 @@
   "Like doseq, but with hiphip-style array bindings."
   [bindings & body]
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info bindings)]
+        (impl/parse-bindings type-info bindings)]
     `(let ~initial-bindings
-       (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
+       (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings ~@body)))))
-
-(defmacro amake
-  "Make a new array of length len and fill it with values computed by expr."
-  [[idx len] expr]
-  `(let [len# ~(core/intcast len)
-         a# (~(:constructor type-info) len#)]
-     (core/dotimes-int [~idx len#] (aset a# ~idx ~expr))
-     a#))
 
 (defmacro amap
   "Like for, but with hiphip-style array bindings.  Builds a new array from
@@ -70,11 +70,11 @@
    the iteration."
   [bindings form]
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info bindings)
+        (impl/parse-bindings type-info bindings)
         fsym (first initial-bindings)
-        out-sym (core/typed-gensym "out" (:atype type-info))]
+        out-sym (impl/typed-gensym "out" (:atype type-info))]
     `(let ~(into initial-bindings [out-sym `(~(:constructor type-info) (- ~stop-sym ~start-sym))])
-       (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
+       (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings (aset ~out-sym (unchecked-add ~start-sym ~index-sym) ~form)))
        ~out-sym)))
 
@@ -82,9 +82,9 @@
   "Like `amap`, but writes the output of form to the first bound array and returns it."
   [bindings form]
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (core/parse-bindings type-info bindings)]
+        (impl/parse-bindings type-info bindings)]
     `(let ~initial-bindings
-       (core/dotimes-int [~index-sym ~start-sym ~stop-sym]
+       (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings (aset ~(first initial-bindings) ~index-sym ~form)))
        ~(first initial-bindings))))
 
@@ -177,8 +177,6 @@
   (aselect xs k)
   (asort xs 0 k)
   xs)
-
-
 
 (defmacro apartition-indices
   "Like partition, but  mutate an array of indices into arr rather than
