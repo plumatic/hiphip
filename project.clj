@@ -1,4 +1,4 @@
-(defproject hiphip "0.1.0-SNAPSHOT"
+(defproject prismatic/hiphip "0.1.0-SNAPSHOT"
   :description "Utility macros and functions to make working with
                 primitive arrays a bit simpler."
   :license {:name "Eclipse Public License - v 1.0"
