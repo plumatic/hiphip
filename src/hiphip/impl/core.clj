@@ -1,40 +1,6 @@
 (ns hiphip.impl.core
-  "A note on bindings: All these macros use binding forms that look like:
-
-  [[i x] xs
-   y ys
-   ...]
-
-  This binds i to the index and x and y to the ith element of xs and ys,
-  respectively. Note that unlike for/doseq, iteration over multiple arrays
-  is parallel rather than nested.
-
-  You can include index variables wherever and whenever you want, so you can do:
-
-  [x xs
-   y ys
-   ...]
-
-  or:
-
-  [[i1 x] xs
-   [i2 y] ys
-   [i3 z] zs
-   ...]
-
-  but i1, i2, and i3 will have the same value.
-
-  You can also include a range as a first element of the binding:
-
-  [:range [0 10]
-   [i x] xs]
-
-  and the operation will only be applied over that range. The default range
-  is from 0 to the length of the first array in the binding.
-
-  All of these are internal tools that require type information as
-  their first argument. Refer to type_impl.clj, double.clj, long.clj
-  et cetera for proper implementations."
+  "Internal helpers for hiphip, including generating primitive-type-specific array code and
+   parsing hiphip-style array bindings."
   (:import [clojure.lang RT]))
 
 (set! *warn-on-reflection* true)
