@@ -3,7 +3,7 @@
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
-(require '[hiphip.impl.core :as impl])
+(require '[hiphip.impl.core :as impl] '[hiphip.array :as array])
 
 (definline aclone
   "aclone that doesn't require type hinting"
@@ -35,10 +35,7 @@
 (defmacro amake
   "Make a new array of length len and fill it with values computed by expr."
   [[idx len] expr]
-  `(let [len# ~(impl/intcast len)
-         a# (~(:constructor type-info) len#)]
-     (impl/dotimes-int [~idx len#] (aset a# ~idx ~expr))
-     a#))
+  `(array/amake ~(:etype type-info) [~idx ~len] ~expr))
 
 (defmacro areduce
   "Areduce, with hiphip-style array bindings.
@@ -46,47 +43,24 @@
   Note: The type of the accumulator will have the same semantics as those of a
   variable in a loop."
   [bindings ret init form]
-  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (impl/parse-bindings type-info bindings)]
-    `(let ~initial-bindings
-       (loop [~index-sym ~start-sym ~ret ~init]
-         (if (< ~index-sym ~stop-sym)
-           (recur (unchecked-inc-int ~index-sym)
-                  (let ~value-bindings ~form))
-           ~ret)))))
+  `(array/areduce ~(impl/hint-bindings type-info bindings) ~ret ~init ~form))
 
 (defmacro doarr
   "Like doseq, but with hiphip-style array bindings."
   [bindings & body]
-  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (impl/parse-bindings type-info bindings)]
-    `(let ~initial-bindings
-       (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
-                         (let ~value-bindings ~@body)))))
+  `(array/doarr ~(impl/hint-bindings type-info bindings) ~@body))
 
 (defmacro amap
   "Like for, but with hiphip-style array bindings.  Builds a new array from
    values produced by form at each step, with length equal to the range of
    the iteration."
   [bindings form]
-  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (impl/parse-bindings type-info bindings)
-        fsym (first initial-bindings)
-        out-sym (impl/typed-gensym "out" (:atype type-info))]
-    `(let ~(into initial-bindings [out-sym `(~(:constructor type-info) (- ~stop-sym ~start-sym))])
-       (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
-                         (let ~value-bindings (aset ~out-sym (unchecked-add ~start-sym ~index-sym) ~form)))
-       ~out-sym)))
+  `(array/amap ~(:etype type-info) ~(impl/hint-bindings type-info bindings) ~form))
 
 (defmacro afill!
   "Like `amap`, but writes the output of form to the first bound array and returns it."
   [bindings form]
-  (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
-        (impl/parse-bindings type-info bindings)]
-    `(let ~initial-bindings
-       (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
-                         (let ~value-bindings (aset ~(first initial-bindings) ~index-sym ~form)))
-       ~(first initial-bindings))))
+  `(array/afill! ~(impl/hint-bindings type-info bindings) ~form))
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body

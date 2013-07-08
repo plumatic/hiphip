@@ -57,20 +57,16 @@
 (defn typed-gensym
   "Generate a type-hinted symbol."
   [basis tag]
-  (with-meta (gensym basis) {:tag tag}))
+  (if tag
+    (with-meta (gensym basis) {:tag tag})
+    (gensym basis)))
 
-(defn parse-binding [type-info index-sym [left right]]
+(defn parse-binding [index-sym [left right]]
   (case left
-    :let
-    (do (assert-iae (and (vector? right) (even? (count right)))
-                    "Invalid let bindings %s; must look like :let [a 1 b 2]" right)
-        {:let-bindings (->> (partition 2 right)
-                            (mapcat (fn [[sym val]] `[~sym (~(:etype type-info) ~val)]))
-                            vec)})
-    :range
-    (do (assert-iae (and (vector? right) (= (count right) 2))
-                    "Invalid range binding %s; must look like :range [10 20]" right)
-        {:range-exprs right})
+    :let {:let-bindings right}
+    :range (do (assert-iae (and (vector? right) (= (count right) 2))
+                           "Invalid range binding %s; must look like :range [10 20]" right)
+               {:range-exprs right})
     ;; else
     (let [[idx-sym val-sym] (if (symbol? left)
                               [nil left]
@@ -79,7 +75,7 @@
                                               left
                                               "val sym or pair of index and value syms")
                                   [(first left) (second left)]))
-          array-sym (typed-gensym 'arr (:atype type-info))]
+          array-sym (gensym "arr")]
       {:array-bindings [array-sym right]
        :value-bindings (into (if idx-sym [idx-sym index-sym] [])
                              [val-sym `(aget ~array-sym ~(intcast index-sym))])})))
@@ -94,7 +90,7 @@
     -- with array-sysm in the order provided in the input.
    :value-bindings - bindings [array-val array-sym ...
                                extra-index-sym index-sym]"
-  [type-info bindings]
+  [bindings]
   (assert-iae (even? (count bindings))
               "Array binding %s requires an even number of forms" bindings)
   (let [index-sym (gensym "i")
@@ -105,7 +101,7 @@
                 value-bindings
                 let-bindings]} (->> bindings
                                     (partition 2)
-                                    (map #(parse-binding type-info index-sym %))
+                                    (map #(parse-binding index-sym %))
                                     (apply merge-with (comp vec concat)))
         [start-expr stop-expr] (cond (empty? range-exprs)
                                      [0 `(alength ~(first array-bindings))]
@@ -123,12 +119,29 @@
                   "Variable `%s` shadowed by the let-binding in %s"
                   shadows
                   bindings))
+    (assert-iae (and (vector? let-bindings) (even? (count let-bindings)))
+                "Invalid let bindings %s; must look like :let [a 1 b 2]" let-bindings)
     {:index-sym index-sym
      :start-sym start-sym
      :stop-sym stop-sym
      :initial-bindings (into array-bindings
                              [start-sym start-expr stop-sym stop-expr])
      :value-bindings (into value-bindings let-bindings)}))
+
+(defn hint-binding [type-info [left right]]
+  (case left
+    :range [left right]
+    :let (->> (partition 2 right)
+              (mapcat (fn [[sym val]] `[~sym (~(:etype type-info) ~val)]))
+              vec)
+    [left (with-meta right {:tag (:atype type-info)})]))
+
+(defn hint-bindings [type-info bindings]
+  (assert-iae (even? (count bindings))
+              "Array binding %s requires an even number of forms" bindings)
+  (->> (partition 2 bindings)
+       (mapcat (partial hint-binding type-info))
+       vec))
 
 (defmacro dotimes-int
   "Like dotimes, but faster and only works on int ranges.  Also takes an optional
