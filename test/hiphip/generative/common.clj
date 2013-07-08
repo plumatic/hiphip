@@ -11,7 +11,8 @@
   (assert (= % (apply + (take 50 (drop 50 xs))))))
 
 (defspec dot-product-dots
-  dot-product
+  (fn [xs ys]
+    (dot-product xs ys))
   [^{:tag (`array-gen)} a ^{:tag (`array-gen)} b]
   (do
     ;; This is commented out due to Clojure's math ops returning longs
@@ -20,7 +21,8 @@
     (assert (= % (reduce + (map * a b))))))
 
 (defspec amean-finds-the-mean
-  amean
+  (fn [xs]
+    (amean xs))
   [^{:tag (`array-gen)} xs]
   (assert (= (/ (reduce + xs) (count xs)) %)))
 
