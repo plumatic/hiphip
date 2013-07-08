@@ -9,7 +9,8 @@
  '[criterium.core :as bench]
  '[hiphip.impl.core :as impl])
 
-(set! *unchecked-math* true)
+;; TODO: some versions with and without unchecked math -- it actually makes many things slower.
+;; (set! *unchecked-math* true)
 
 (def +type+ hiphip/+type+)
 
