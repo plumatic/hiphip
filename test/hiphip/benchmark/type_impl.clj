@@ -2,7 +2,12 @@
 ;; Assumes the appropriate hiphip array type ns has been aliased as 'hiphip',
 ;; and the appropriate Java baseline class has been imported as 'JavaBaseline'
 
-(require '[clojure.test :as test] '[hiphip.impl.core :as impl])
+(use 'clojure.test)
+(require
+ '[clojure.pprint :as pprint]
+ '[clojure.test :as test]
+ '[criterium.core :as bench]
+ '[hiphip.impl.core :as impl])
 
 (set! *unchecked-math* true)
 
