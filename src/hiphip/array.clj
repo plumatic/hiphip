@@ -39,13 +39,6 @@
   (:refer-clojure :exclude [make-array amap areduce])
   (:require [hiphip.impl.core :as impl]))
 
-(defn- value-cast
-  "Produce an unchecked cast for the value of a given type"
-  [type expr]
-  (if-let [type-info (impl/primitive-type-info type)]
-    `(~(:unchecked-cast type-info) ~expr)
-    expr))
-
 (defmacro make-array
   "Like Clojure's make-array, but type must be a compile-time literal,
    correctly type-hints the output array, and primitives can be specified
@@ -53,7 +46,7 @@
   [type len]
   (if-let [type-info (impl/primitive-type-info type)]
     `(~(:constructor type-info) ~len)
-    `(impl/make-object-array ~type ~len))) ;; todo: fix correct tag.
+    (impl/array-cast type `(make-array ~type ~len))))
 
 (defmacro amake
   "Make a new array of length len and element type type and fill it
@@ -61,7 +54,7 @@
   [type [idx len] expr]
   `(let [len# ~(impl/intcast len)
          a# (make-array ~type len#)]
-     (impl/dotimes-int [~idx len#] (aset a# ~idx ~(value-cast type expr)))
+     (impl/dotimes-int [~idx len#] (aset a# ~idx ~(impl/value-cast type expr)))
      a#))
 
 (defmacro areduce
@@ -101,7 +94,7 @@
        (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings
                            (aset ~out-sym (unchecked-add ~start-sym ~index-sym)
-                                 ~(value-cast type form))))
+                                 ~(impl/value-cast type form))))
        ~out-sym)))
 
 (defmacro afill!
@@ -114,5 +107,5 @@
        (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings
                            (aset ~(first initial-bindings) ~index-sym
-                                 ~(value-cast type form))))
+                                 ~(impl/value-cast type form))))
        ~(first initial-bindings))))

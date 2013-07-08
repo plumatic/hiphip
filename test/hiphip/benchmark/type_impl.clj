@@ -2,11 +2,11 @@
 ;; Assumes the appropriate hiphip array type ns has been aliased as 'hiphip',
 ;; and the appropriate Java baseline class has been imported as 'JavaBaseline'
 
-(require '[clojure.test :as test])
+(require '[clojure.test :as test] '[hiphip.impl.core :as impl])
 
 (set! *unchecked-math* true)
 
-(def type-info hiphip/type-info)
+(def +type+ hiphip/+type+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generic helpers
@@ -15,7 +15,7 @@
   "Generate an array of the correct type, consisting of a short repeating sequence
    of small integers of length 'size' with given 'phase'."
   [size phase]
-  `(~(:constructor type-info)
+  `(~(:constructor (impl/primitive-type-info +type+))
     (take ~size (drop ~phase (apply concat (repeat [-2 3 0 -1 0 1 -1 2 3]))))))
 
 (defmacro result-or-ex [form]
@@ -89,7 +89,7 @@
   (when-let [slowness (:slowness result)]
     (if (number? slowness)
       slowness
-      (let [k (keyword (name (:etype type-info)))]
+      (let [k (keyword (name +type+))]
         (assert (contains? slowness k))
         (slowness k)))))
 
@@ -172,7 +172,11 @@
 
 (defbenchmark aclone
   (JavaBaseline/aclone xs)
-  1.1 (hiphip/aclone xs))
+  1.1 (hiphip/aclone xs)
+
+  ;; 1.1 (double-array (hiphip/alength xs))
+  ;; 1.1 (make-array Double/TYPE (hiphip/alength xs))
+  )
 
 (defbenchmark alength
   (JavaBaseline/alength xs)
@@ -196,10 +200,10 @@
   1.1 (hiphip/ainc xs 0 1))
 
 (defmacro hinted-hiphip-areduce [bind ret-sym init final]
-  `(hiphip/areduce ~bind ~ret-sym (~(:etype type-info) ~init) ~final))
+  `(hiphip/areduce ~bind ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
 (defmacro hinted-clojure-areduce [arr-sym idx-sym ret-sym init final]
-  `(areduce ~arr-sym ~idx-sym ~ret-sym (~(:etype type-info) ~init) ~final))
+  `(areduce ~arr-sym ~idx-sym ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
 (defbenchmark areduce-and-dot-product
   (JavaBaseline/dot_product xs ys)
@@ -268,6 +272,13 @@
                (recur (unchecked-inc-int i#) v#)
                (recur (unchecked-inc-int i#) m#))))))))
 
+(defbenchmark amax-index
+  (hiphip/amax-index xs)
+  ;; 1.7 (hiphip/amax-index2 xs)
+  ;; ;; 1.7 (hiphip/amax2 xs)
+  ;; ;; 1.7 (hiphip/amax3 xs)
+  )
+
 (defbenchmark amax
   (JavaBaseline/amax xs)
   ;; amax is inexplicably slower with *unchecked-math* on...
@@ -295,7 +306,7 @@
 
 (defn test-performance [size]
   (printf "Benchmarking  %s arrays with %s elements (this may take awhile)\n"
-          (name (:etype type-info)) size)
+          (name +type+) size)
   (doseq [[n test] @+all-benchmarks+]
     (testing (name n) (test size))))
 

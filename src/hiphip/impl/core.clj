@@ -35,7 +35,6 @@
   All of these are internal tools that require type information as
   their first argument. Refer to type_impl.clj, double.clj, long.clj
   et cetera for proper implementations."
-  (:refer-clojure :exclude [object-array])
   (:import [clojure.lang RT]))
 
 (set! *warn-on-reflection* true)
@@ -61,32 +60,49 @@
   [basis tag]
   (with-meta (gensym basis) {:tag tag}))
 
-(defn ^{:tag "[Ljava.lang.Object;"} object-array
-  "Type hinted version of clojure.core/object-array, meant for non-primitive object types."
-  ([len] (make-array Object len))
-  ([type len] (make-array type len)))
-
 (defn primitive-type-info
   "Produce an map of helpers for an array type"
   [type]
   (case type
-    (double Double/TYPE clojure.core/double) {:unchecked-cast `RT/uncheckedDoubleCast
+    (double Double/TYPE clojure.core/double) {:array-tag 'doubles
+                                              :unchecked-cast `RT/uncheckedDoubleCast
                                               :constructor `double-array}
-    (float Float/TYPE clojure.core/float) {:unchecked-cast `RT/uncheckedFloatCast
+    (float Float/TYPE clojure.core/float) {:array-tag 'floats
+                                           :unchecked-cast `RT/uncheckedFloatCast
                                            :constructor `float-array}
-    (long Long/TYPE clojure.core/long) {:unchecked-cast `RT/uncheckedLongCast
+    (long Long/TYPE clojure.core/long) {:array-tag 'longs
+                                        :unchecked-cast `RT/uncheckedLongCast
                                         :constructor `long-array}
-    (int Integer/TYPE clojure.core/int) {:unchecked-cast `RT/uncheckedIntCast
+    (int Integer/TYPE clojure.core/int) {:array-tag 'ints
+                                         :unchecked-cast `RT/uncheckedIntCast
                                          :constructor `int-array}
-    (short Short/TYPE clojure.core/short) {:unchecked-cast `RT/uncheckedShortCast
+    (short Short/TYPE clojure.core/short) {:array-tag 'shorts
+                                           :unchecked-cast `RT/uncheckedShortCast
                                            :constructor `short-array}
-    (byte Byte/TYPE clojure.core/byte) {:unchecked-cast `RT/uncheckedByteCast
+    (byte Byte/TYPE clojure.core/byte) {:array-tag 'bytes
+                                        :unchecked-cast `RT/uncheckedByteCast
                                         :constructor `byte-array}
-    (char Character/TYPE clojure.core/char) {:unchecked-cast `RT/uncheckedCharCast
+    (char Character/TYPE clojure.core/char) {:array-tag 'chars
+                                             :unchecked-cast `RT/uncheckedCharCast
                                              :constructor `char-array}
-    (boolean Boolean/TYPE clojure.core/boolean) {:unchecked-cast `RT/booleanCast
+    (boolean Boolean/TYPE clojure.core/boolean) {:array-tag 'booleans
+                                                 :unchecked-cast `RT/booleanCast
                                                  :constructor `boolean-array}
     nil))
+
+(defn array-cast
+  "Produce an unchecked cast for the value of a given type"
+  [type expr]
+  (with-meta expr {:tag (if-let [type-info (primitive-type-info type)]
+                          (:array-tag type-info)
+                          (format "[L%s;" (.getName ^Class type)))}))
+
+(defn value-cast
+  "Produce an unchecked cast for the value of a given type"
+  [type expr]
+  (if-let [type-info (primitive-type-info type)]
+    `(~(:unchecked-cast type-info) ~expr)
+    expr))
 
 (defn parse-binding [index-sym [left right]]
   (case left
@@ -155,19 +171,19 @@
                              [start-sym start-expr stop-sym stop-expr])
      :value-bindings (into value-bindings let-bindings)}))
 
-(defn hint-binding [type-info [left right]]
+(defn hint-binding [type [left right]]
   (case left
     :range [left right]
     :let (->> (partition 2 right)
-              (mapcat (fn [[sym val]] `[~sym (~(:etype type-info) ~val)]))
+              (mapcat (fn [[sym val]] `[~sym ~(value-cast type val)]))
               vec)
-    [left (with-meta right {:tag (:atype type-info)})]))
+    [left (array-cast type right)]))
 
-(defn hint-bindings [type-info bindings]
+(defn hint-bindings [type bindings]
   (assert-iae (even? (count bindings))
               "Array binding %s requires an even number of forms" bindings)
   (->> (partition 2 bindings)
-       (mapcat (partial hint-binding type-info))
+       (mapcat (partial hint-binding type))
        vec))
 
 (defmacro dotimes-int

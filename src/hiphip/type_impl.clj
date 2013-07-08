@@ -5,37 +5,44 @@
 (set! *unchecked-math* true)
 (require '[hiphip.impl.core :as impl] '[hiphip.array :as array])
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Type hinted versions of clojure.core fns, plus ainc
+
 (definline aclone
   "aclone that doesn't require type hinting"
   [xs]
-  `(clojure.core/aclone ~(with-meta xs {:tag (:atype type-info)})))
+  `(clojure.core/aclone ~(impl/array-cast +type+ xs)))
 
 (definline alength
   "alength that doesn't require type hinting"
   [xs]
-  `(clojure.core/alength ~(with-meta xs {:tag (:atype type-info)})))
+  `(clojure.core/alength ~(impl/array-cast +type+ xs)))
 
 (definline aget
   "aset that doesn't require type hinting"
   [xs idx]
-  `(clojure.core/aget ~(with-meta xs {:tag (:atype type-info)}) ~(impl/intcast idx)))
+  `(clojure.core/aget ~(impl/array-cast +type+ xs) ~(impl/intcast idx)))
 
 (definline aset
   "aset that doesn't require type hinting"
   [xs idx val]
-  `(clojure.core/aset ~(with-meta xs {:tag (:atype type-info)}) ~(impl/intcast idx)
-                      (~(:etype type-info) ~val)))
+  `(clojure.core/aset ~(impl/array-cast +type+ xs) ~(impl/intcast idx)
+                      ~(impl/value-cast +type+ val)))
 
 (definline ainc
   "Increment the value of xs at idx by val"
   [xs idx val]
   `(let [idx# ~idx]
-     (aset ~xs idx# (+ (~(:etype type-info) ~val) (aget ~xs idx#)))))
+     (aset ~xs idx# (+ ~(impl/value-cast +type+ val) (aget ~xs idx#)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Type hinted versions of hiphip.array functions
 
 (defmacro amake
   "Make a new array of length len and fill it with values computed by expr."
   [[idx len] expr]
-  `(array/amake ~(:etype type-info) [~idx ~len] ~expr))
+  `(array/amake ~+type+ [~idx ~len] ~expr))
 
 (defmacro areduce
   "Areduce, with hiphip-style array bindings.
@@ -43,24 +50,28 @@
   Note: The type of the accumulator will have the same semantics as those of a
   variable in a loop."
   [bindings ret init form]
-  `(array/areduce ~(impl/hint-bindings type-info bindings) ~ret ~init ~form))
+  `(array/areduce ~(impl/hint-bindings +type+ bindings) ~ret ~init ~form))
 
 (defmacro doarr
   "Like doseq, but with hiphip-style array bindings."
   [bindings & body]
-  `(array/doarr ~(impl/hint-bindings type-info bindings) ~@body))
+  `(array/doarr ~(impl/hint-bindings +type+ bindings) ~@body))
 
 (defmacro amap
   "Like for, but with hiphip-style array bindings.  Builds a new array from
    values produced by form at each step, with length equal to the range of
    the iteration."
   [bindings form]
-  `(array/amap ~(:etype type-info) ~(impl/hint-bindings type-info bindings) ~form))
+  `(array/amap ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
 
 (defmacro afill!
   "Like `amap`, but writes the output of form to the first bound array and returns it."
   [bindings form]
-  `(array/afill! ~(:etype type-info) ~(impl/hint-bindings type-info bindings) ~form))
+  `(array/afill! ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; More 'mathy' functions for the main numeric array types.
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body
@@ -68,7 +79,7 @@
   ([array]
      `(asum [a# ~array] a#))
   ([bindings form]
-     `(areduce ~bindings sum# (~(:etype type-info) 0) (+ sum# ~form))))
+     `(areduce ~bindings sum# ~(impl/value-cast +type+ 0) (+ sum# ~form))))
 
 (defmacro aproduct
   "Like `(apply * xs)`, but for arrays. Supports for-each bindings and a body
@@ -76,7 +87,7 @@
   ([array]
      `(aproduct [a# ~array] a#))
   ([bindings form]
-     `(areduce ~bindings prod# (~(:etype type-info) 1) (* prod# ~form))))
+     `(areduce ~bindings prod# ~(impl/value-cast +type+ 1) (* prod# ~form))))
 
 (defmacro amean
   "Mean over an array."
@@ -129,10 +140,10 @@
 
 (defmacro asort
   ([xs]
-     `(doto ~(with-meta xs {:tag (:atype type-info)})
+     `(doto ~(impl/array-cast +type+ xs)
         java.util.Arrays/sort))
   ([xs start stop]
-     `(doto ~(with-meta xs {:tag (:atype type-info)})
+     `(doto ~(impl/array-cast +type+ xs)
         (java.util.Arrays/sort ~start ~stop))))
 
 (defn asort-max
