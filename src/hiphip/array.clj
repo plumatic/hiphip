@@ -39,21 +39,21 @@
   (:refer-clojure :exclude [make-array amap areduce])
   (:require [hiphip.impl.core :as impl]))
 
+(defn- value-cast
+  "Produce an unchecked cast for the value of a given type"
+  [type expr]
+  (if-let [type-info (impl/primitive-type-info type)]
+    `(~(:unchecked-cast type-info) ~expr)
+    expr))
+
 (defmacro make-array
   "Like Clojure's make-array, but type must be a compile-time literal,
    correctly type-hints the output array, and primitives can be specified
    like 'double' in addition to Double/TYPE"
   [type len]
-  (case type
-    (double Double/TYPE) `(double-array ~len)
-    (float Float/TYPE) `(float-array ~len)
-    (long Long/TYPE) `(long-array ~len)
-    (int Integer/TYPE) `(int-array ~len)
-    (short Short/TYPE) `(short-array ~len)
-    (byte Byte/TYPE) `(byte-array ~len)
-    (char Character/TYPE) `(char-array ~len)
-    (boolean Boolean/TYPE) `(boolean-array ~len)
-    (with-meta `(clojure.core/make-array ~type ~len) {:tag 'objects})))
+  (if-let [type-info (impl/primitive-type-info type)]
+    `(~(:constructor type-info) ~len)
+    `(impl/make-object-array ~type ~len))) ;; todo: fix correct tag.
 
 (defmacro amake
   "Make a new array of length len and element type type and fill it
@@ -61,7 +61,7 @@
   [type [idx len] expr]
   `(let [len# ~(impl/intcast len)
          a# (make-array ~type len#)]
-     (impl/dotimes-int [~idx len#] (aset a# ~idx ~expr))
+     (impl/dotimes-int [~idx len#] (aset a# ~idx ~(value-cast type expr)))
      a#))
 
 (defmacro areduce
@@ -99,16 +99,20 @@
         out-sym (gensym "out")]
     `(let ~(into initial-bindings [out-sym `(make-array ~type (- ~stop-sym ~start-sym))])
        (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
-                         (let ~value-bindings (aset ~out-sym (unchecked-add ~start-sym ~index-sym) ~form)))
+                         (let ~value-bindings
+                           (aset ~out-sym (unchecked-add ~start-sym ~index-sym)
+                                 ~(value-cast type form))))
        ~out-sym)))
 
 (defmacro afill!
   "Like `amap`, but writes the output of form to the first bound array
   and returns it."
-  [bindings form]
+  [type bindings form]
   (let [{:keys [index-sym start-sym stop-sym initial-bindings value-bindings]}
         (impl/parse-bindings bindings)]
     `(let ~initial-bindings
        (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
-                         (let ~value-bindings (aset ~(first initial-bindings) ~index-sym ~form)))
+                         (let ~value-bindings
+                           (aset ~(first initial-bindings) ~index-sym
+                                 ~(value-cast type form))))
        ~(first initial-bindings))))

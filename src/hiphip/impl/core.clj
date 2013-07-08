@@ -34,7 +34,9 @@
 
   All of these are internal tools that require type information as
   their first argument. Refer to type_impl.clj, double.clj, long.clj
-  et cetera for proper implementations.")
+  et cetera for proper implementations."
+  (:refer-clojure :exclude [object-array])
+  (:import [clojure.lang RT]))
 
 (set! *warn-on-reflection* true)
 
@@ -57,9 +59,34 @@
 (defn typed-gensym
   "Generate a type-hinted symbol."
   [basis tag]
-  (if tag
-    (with-meta (gensym basis) {:tag tag})
-    (gensym basis)))
+  (with-meta (gensym basis) {:tag tag}))
+
+(defn ^{:tag "[Ljava.lang.Object;"} object-array
+  "Type hinted version of clojure.core/object-array, meant for non-primitive object types."
+  ([len] (make-array Object len))
+  ([type len] (make-array type len)))
+
+(defn primitive-type-info
+  "Produce an map of helpers for an array type"
+  [type]
+  (case type
+    (double Double/TYPE clojure.core/double) {:unchecked-cast `RT/uncheckedDoubleCast
+                                              :constructor `double-array}
+    (float Float/TYPE clojure.core/float) {:unchecked-cast `RT/uncheckedFloatCast
+                                           :constructor `float-array}
+    (long Long/TYPE clojure.core/long) {:unchecked-cast `RT/uncheckedLongCast
+                                        :constructor `long-array}
+    (int Integer/TYPE clojure.core/int) {:unchecked-cast `RT/uncheckedIntCast
+                                         :constructor `int-array}
+    (short Short/TYPE clojure.core/short) {:unchecked-cast `RT/uncheckedShortCast
+                                           :constructor `short-array}
+    (byte Byte/TYPE clojure.core/byte) {:unchecked-cast `RT/uncheckedByteCast
+                                        :constructor `byte-array}
+    (char Character/TYPE clojure.core/char) {:unchecked-cast `RT/uncheckedCharCast
+                                             :constructor `char-array}
+    (boolean Boolean/TYPE clojure.core/boolean) {:unchecked-cast `RT/booleanCast
+                                                 :constructor `boolean-array}
+    nil))
 
 (defn parse-binding [index-sym [left right]]
   (case left
@@ -119,7 +146,7 @@
                   "Variable `%s` shadowed by the let-binding in %s"
                   shadows
                   bindings))
-    (assert-iae (and (vector? let-bindings) (even? (count let-bindings)))
+    (assert-iae (or (nil? let-bindings) (and (vector? let-bindings) (even? (count let-bindings))))
                 "Invalid let bindings %s; must look like :let [a 1 b 2]" let-bindings)
     {:index-sym index-sym
      :start-sym start-sym

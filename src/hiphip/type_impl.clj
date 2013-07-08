@@ -60,7 +60,7 @@
 (defmacro afill!
   "Like `amap`, but writes the output of form to the first bound array and returns it."
   [bindings form]
-  `(array/afill! ~(impl/hint-bindings type-info bindings) ~form))
+  `(array/afill! ~(:etype type-info) ~(impl/hint-bindings type-info bindings) ~form))
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body
