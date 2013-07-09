@@ -29,13 +29,25 @@
 
    but i1, i2, and i3 will have the same value.
 
-   You can also include a range as a first element of the binding:
+   You can also include a range in the binding:
 
    [:range [0 10]
     [i x] xs]
 
    and the operation will only be applied over that range. The default
-   range is from 0 to the length of the first array in the binding."
+   range is from 0 to the length of the first array in the binding.
+
+   The bindings also support `:let`, which works like a regular let in
+   the inner loop, but casts to the array type (for speedy math), e.g.
+
+   (hh/amap [x xs :let [alpha 5 delta (- x 9)]]
+     (* x alpha delta))
+
+   Be aware that `:let` explicitly disallows shadowing the array
+   bindings, e.g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
+   `IllegalArgumentException`. Do also note that destructuring syntax
+   is not supported.
+  "
   (:refer-clojure :exclude [make-array amap areduce])
   (:require [hiphip.impl.core :as impl]))
 

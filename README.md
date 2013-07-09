@@ -2,9 +2,8 @@ hiphip (array)!
 ===========
 
 `hiphip` is an array macro library for Clojure. It offers more elegant
-ways for doing fast math with primitive arrays, including functional
-forms like `amap` and `areduce` and in-place forms like `afill!`.
-Supports for-like bindings (see `Bindings`).
+ways for doing fast math with primitive arrays, both in-place and
+functional.
 
 # Why?
 
@@ -30,11 +29,11 @@ you can write the fast and simple
 (defn dot-product [ws xs] (au/asum [x xs w ws] (* x w)))
 ```
 
-# API
+# About
 
-`hiphip` provides functions and macros require little or no manual
-type hinting, and they use a binding semantics similar to those of for
-(see `Bindings` below). They are explained below.
+`hiphip` provides functions and macros that require little or no
+manual type hinting, and they use a binding semantics similar to those
+of `for` (see `Bindings` below). They are explained below.
 
 The library currently supports arrays of floats, doubles, ints, and
 longs. You can extend to other types by providing type information to
@@ -227,3 +226,8 @@ unreasonbly slow, make sure to add `:jvm-opts ^:replace []` to your
 Copyright © 2013 Emil Flakk, Jason Wolfe, Leon Bennet.
 
 Distributed under the Eclipse Public License, the same as Clojure.
+
+TODO:
+
+- rewrite hiphip.array docs to explain bindings
+- add example code to each function in type_impl

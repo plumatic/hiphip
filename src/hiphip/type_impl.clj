@@ -5,42 +5,12 @@
 (set! *unchecked-math* true)
 (require '[hiphip.impl.core :as impl] '[hiphip.array :as array])
 
-;; For documentation purposes only.
-(def bindings
-  "Array bindings come in pairs like this:
-
-  [[i x] xs
-   y ys
-   ...]
-
-  This binds `i` to the index and `x` and `y` to the ith element of xs
-  and ys respectively. The index variable is optional. Also, do note
-  that unlike for/doseq, iteration over multiple arrays is parallel
-  rather than nested.
-
-  The bindings can specify a range. The operations will then only be
-  applied over this range. The default range is from 0 to the length
-  of the first array in the bindings.
-
-  [x xs :range [0 10]]
-
-  Lastly, the bindings support a let statement. It casts the var(s) to
-  the type of the array. Do note that destructuring syntax is not
-  supported. Neither is shadowing any of the array bindings, which
-  will throw an IllegalArgumentException.
-
-  [x xs :let [alpha 5]
-  "
-  
-
-  and bind 
-  nil)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Type hinted versions of clojure.core fns, plus ainc
+;; ---------------------------------------------------
+;; Type hinted versions of clojure.core fns, plus ainc
+;; ---------------------------------------------------
 
 (definline aclone
-  "aclone that doesn't require type hinting"
+  "aclone that doesn't require type hinting."
   [xs]
   `(clojure.core/aclone ~(impl/array-cast +type+ xs)))
 
@@ -67,54 +37,129 @@
      (aset ~xs idx# (+ ~(impl/value-cast +type+ val) (aget ~xs idx#)))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Type hinted versions of hiphip.array functions
+;; ----------------------------------------------
+;; Type hinted versions of hiphip.array functions
+;; ----------------------------------------------
 
 (defmacro amake
-  "Make a new array of length len and fill it with values computed by expr."
+  "Make a new array of length len and fill it with values computed by expr.
+
+   ;; array of random values between 0 10
+   (amake [_ 10e3] (rand-int 10))
+
+   ;; array of squares
+   (amake [i 100] (* i i)) 
+  "
   [[idx len] expr]
   `(array/amake ~+type+ [~idx ~len] ~expr))
 
 (defmacro areduce
-  "Areduce, with hiphip-style array bindings.
+  "`areduce`, with hiphip-style array bindings (please see the
+  `hiphip.array` docstring). Note: The type of the accumulator will
+  have the same semantics as those of a variable in a loop.
 
-  Note: The type of the accumulator will have the same semantics as those of a
-  variable in a loop."
+   ;; Frequencies of different elements
+   (areduce [x xs] ret {} 
+     (assoc ret x (inc (get ret x 0))))
+
+   ;; Unique elements in the array
+   (areduce [x xs] ret {} 
+     (conj ret x))
+
+   ;; Return all non-composite numbers
+   (areduce [x (asort xs)] ncomp []
+     (if (some zero? (map #(mod x %) ncomp))
+       ncomp
+       (conj ncomp x)))
+  "
   [bindings ret init form]
   `(array/areduce ~(impl/hint-bindings +type+ bindings) ~ret ~init ~form))
 
 (defmacro doarr
-  "Like doseq, but with hiphip-style array bindings."
+  "Like doseq, but with hiphip-style array bindings (please see the
+  `hiphip.array` docstring).
+  
+   ;; Array to ArrayList
+   (let [alist (java.util.ArrayList.)] 
+     (doarr [x xs] (.add alist x))
+     alist)
+
+   ;; Print the fifty first elements
+   (doarr [x xs :range [0 50]] 
+     (println x))
+  "
   [bindings & body]
   `(array/doarr ~(impl/hint-bindings +type+ bindings) ~@body))
 
 (defmacro amap
-  "Like for, but with hiphip-style array bindings.  Builds a new array from
-   values produced by form at each step, with length equal to the range of
-   the iteration."
+  "Like for, but with hiphip-style array bindings (please see the
+   `hiphip.array` docstring). Builds a new array from values produced
+   by form at each step, with length equal to the range of the
+   iteration.
+
+   ;; Square roots array
+   (amap [x xs] (Math/sqrt x))
+
+   ;; New array with only odd values
+   (amap [x xs] (if (even? x) (inc 0) x))
+
+   ;; Create an array from the first ten elements, all incremented
+   (amap [x xs :range [0 10]] (inc x)) 
+  "
   [bindings form]
   `(array/amap ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
 
 (defmacro afill!
-  "Like `amap`, but writes the output of form to the first bound array and returns it."
+  "Like `amap`, but writes the output of form to the first bound array
+   and returns it.
+
+   ;; Relace values that are too large
+   (afill! [x xs :let [limit 500]]
+     (if (>= x limit) 42, x))
+
+   ;; Cube an array!
+   (afill! [x xs] (* x x x))
+
+   ;; Zero the first 20 elements
+   (afill! [x xs :range [0 20]] 0)
+  "
   [bindings form]
   `(array/afill! ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; More 'mathy' functions for the main numeric array types.
+;; -------------------------------------------------------
+;; More 'mathy' functions for the main numeric array types
+;; -------------------------------------------------------
 
 (defmacro asum
-  "Like `(apply + xs)`, but for arrays. Supports for-each bindings and a body
-  expression."
+  "Like `(apply + xs)`, but for arrays. Supports for-each
+   bindings (please see the `hiphip.array` docstring) and a body
+   expression.
+
+   ;; Basic usage
+   (asum xs)
+
+   ;; Sum of the square of each element
+   (asum [x xs] (* x x))
+
+   ;; Compute a standard deviation
+   (let [mean (amean xs)]
+     (/ (asum [x xs] (Math/pow (- x mean) 2))
+        (alength xs)))
+  "
   ([array]
      `(asum [a# ~array] a#))
   ([bindings form]
      `(areduce ~bindings sum# ~(impl/value-cast +type+ 0) (+ sum# ~form))))
 
 (defmacro aproduct
-  "Like `(apply * xs)`, but for arrays. Supports for-each bindings and a body
-  expression."
+  "Like `(apply * xs)`, but for arrays. Supports for-each
+   bindings (please see the `hiphip.array` docstring) and a body
+   expression.
+
+   ;; Net probability of an array of probabilities
+   (aproduct x)
+  "
   ([array]
      `(aproduct [a# ~array] a#))
   ([bindings form]
@@ -132,13 +177,15 @@
   `(let [xs# ~xs ys# ~ys]
      (asum [x# xs# y# ys#] (* x# y#))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Selecting minimal/maximal elements and sorting
+;; ----------------------------------------------
+;; Selecting minimal/maximal elements and sorting
+;; ----------------------------------------------
 
 (definline amax-index
   "Maximum over an array.
-   Uses Java for now for maximum efficiency.
-   See benchmarks for our current best performance in pure Clojure."
+
+   Uses Java for now for maximum efficiency. See benchmarks for our
+   current best performance in pure Clojure."
   [xs]
   `(Helpers/maxIndex ~xs))
 
@@ -149,8 +196,9 @@
 
 (definline amin-index
   "Maximum over an array.
-   Uses Java for now for maximum efficiency.
-   See benchmarks for our current best performance in pure Clojure."
+
+   Uses Java for now for maximum efficiency. See benchmarks for our
+   current best performance in pure Clojure."
   [xs]
   `(Helpers/minIndex ~xs))
 
@@ -161,8 +209,9 @@
 
 (defmacro apartition
   "Mutate array xs in range [start stop) so that elements less than pivot come first,
-   followed by elements equal to pivot, followed by elements greater than pivot.
-   Returns 1 + the smallest index pointing at an element > pivot after the partitioning."
+   followed by elements equal to pivot, followed by elements greater
+   than pivot. Returns 1 + the smallest index pointing at an element >
+   pivot after the partitioning."
   ([xs pivot] `(let [xs# ~xs] (apartition xs# 0 (alength xs#) ~pivot)))
   ([xs start stop pivot]
      `(doto ~xs (Helpers/partition ~start ~stop ~pivot))))
@@ -173,6 +222,7 @@
      `(doto ~xs (Helpers/select ~start ~stop ~k))))
 
 (defmacro asort
+  "Sorts an array in-place."
   ([xs]
      `(doto ~(impl/array-cast +type+ xs)
         java.util.Arrays/sort))
@@ -226,9 +276,9 @@
      `(doto ~indices (Helpers/sortIndices ~xs ~start ~stop))))
 
 (defn ^ints amax-indices
-  "Return an array of indices where the last k elements point at the max
-   k elements of xs in ascending order (and the remaining elements point
-   at the remaining elements of xs, in no particular order.)"
+  "Return an array of indices where the last k elements point at the
+   max k elements of xs in ascending order (and the remaining elements
+   point at the remaining elements of xs, in no particular order.)"
   [xs ^long k]
   (let [len (alength xs)]
     (doto (hiphip.IndexArrays/make 0 len)
@@ -236,9 +286,9 @@
       (asort-indices xs (- len k) len))))
 
 (defn ^ints amin-indices
-  "Return an array of indices where the first k elements point at the min
-   k elements of xs in ascending order (and the remaining elements point
-   at the remaining elements of xs, in no particular order.)"
+  "Return an array of indices where the first k elements point at the
+   min k elements of xs in ascending order (and the remaining elements
+   point at the remaining elements of xs, in no particular order.)"
   [xs ^long k]
   (doto (hiphip.IndexArrays/make 0 (alength xs))
     (aselect-indices xs k)

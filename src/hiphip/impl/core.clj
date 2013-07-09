@@ -1,6 +1,6 @@
 (ns hiphip.impl.core
-  "Internal helpers for hiphip, including generating primitive-type-specific array code and
-   parsing hiphip-style array bindings."
+  "Internal helpers for hiphip, including generating primitive
+   type-specific array code and parsing hiphip-style array bindings."
   (:import [clojure.lang RT]))
 
 (set! *warn-on-reflection* true)
