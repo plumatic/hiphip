@@ -5,6 +5,37 @@
 (set! *unchecked-math* true)
 (require '[hiphip.impl.core :as impl] '[hiphip.array :as array])
 
+;; For documentation purposes only.
+(def bindings
+  "Array bindings come in pairs like this:
+
+  [[i x] xs
+   y ys
+   ...]
+
+  This binds `i` to the index and `x` and `y` to the ith element of xs
+  and ys respectively. The index variable is optional. Also, do note
+  that unlike for/doseq, iteration over multiple arrays is parallel
+  rather than nested.
+
+  The bindings can specify a range. The operations will then only be
+  applied over this range. The default range is from 0 to the length
+  of the first array in the bindings.
+
+  [x xs :range [0 10]]
+
+  Lastly, the bindings support a let statement. It casts the var(s) to
+  the type of the array. Do note that destructuring syntax is not
+  supported. Neither is shadowing any of the array bindings, which
+  will throw an IllegalArgumentException.
+
+  [x xs :let [alpha 5]
+  "
+  
+
+  and bind 
+  nil)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Type hinted versions of clojure.core fns, plus ainc
 

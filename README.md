@@ -1,29 +1,12 @@
 hiphip (array)!
 ===========
 
-`hiphip` is an array macro library for Clojure. It offers more
-elegant ways to handle primitive arrays, including both functional forms
-like `amap` and `areduce` and in-place forms like `afill!`.  The
-functions and macros require little or no manual type hinting, and they
-use a binding semantics similar to those of for (see below).
+`hiphip` is an array macro library for Clojure. It offers more elegant
+ways for doing fast math with primitive arrays, including functional
+forms like `amap` and `areduce` and in-place forms like `afill!`.
+Supports for-like bindings (see `Bindings`).
 
-`hiphip` supports multiple array types, including floats, doubles,
-ints, and longs. Feel free to make your own implementations using the
-abstractions offered in `core.clj` and `type_impl.clj`.
-
-Note: if you don't need the speed of primitive arrays, we encourage you
-to keep using Clojure's 'map' and 'reduce'--they're more flexible.
-
-# Usage
-
-In your `project.clj`, add a dependency on
-`[hiphip "unreleased-version"]`. Then require a type namespace,
-e.g.
-```clojure
-(require 'hiphip.double)
-```
-
-# Motivation
+# Why?
 
 Instead of writing
 ```clojure
@@ -47,25 +30,53 @@ you can write the fast and simple
 (defn dot-product [ws xs] (au/asum [x xs w ws] (* x w)))
 ```
 
-# Bindings
+# API
 
-All these macros use binding forms that look like:
-```clojure
-(au/amap
-  [[i x] xs
-   y ys ...]
-  <expression involving i, x, y>)
+`hiphip` provides functions and macros require little or no manual
+type hinting, and they use a binding semantics similar to those of for
+(see `Bindings` below). They are explained below.
+
+The library currently supports arrays of floats, doubles, ints, and
+longs. You can extend to other types by providing type information to
+the functions in `hiphip.array`.
+
+Note: if you don't need the speed of primitive arrays, we encourage you
+to keep using Clojure's 'map' and 'reduce' -- they're more flexible.
+
+# Usage
+
+In your `project.clj`, add a dependency on 
+`[hiphip "unreleased-version"]`. Then require the namespace for your type, e.g.
+
+```clojure 
+(require 'hiphip.double) 
 ```
 
-This binds x and y to the ith element of xs and ys, respectively. You
-can include i-variables wherever and whenever you want, so you can do:
+# Bindings
+
+Bindings look like this:
+
+```clojure
+(au/amap
+  [[i x] xs]
+  <expression involving i, x>)
+```
+
+This binds `i` to the current index and `x` to the ith element of xs.
+The index-variable is optional, but there must be at least one array
+binding. You can have as many array bindings as you want. For example:
+
 ```clojure
 (au/amap
   [x xs
-   y ys ...]
+   y ys 
+   z zs...]
   <expression involving x, y>)
 ```
-or:
+
+Iteration is parallel and not nested, ulike `for` and `doseq.
+Therefore, in
+
 ```clojure
 (au/amap
   [[i1 x] xs
@@ -73,11 +84,14 @@ or:
    [i3 z] zs ...]
   <expression involving i1, x, i2, y, i3, z>)
 ```
-but i1, i2, and i3 will have the same value.
 
-## Ranges
+the index-variables i1, i2, and i3 will have the same value.
 
-You can also include a range in your bindings, e.g.
+### Ranges
+
+You can specify a range for the operations. The default range is from
+0 to the length of the first array.
+
 ```clojure
 (au/afill!
   [[i x] xs
@@ -85,36 +99,37 @@ You can also include a range in your bindings, e.g.
   i)
 ```
 
-Then the operation will only be applied over that range.
+### Let
 
-## Let
-
-The bindings also support `:let`, which works like a regular `let` in
-the inner loop, but casts to the array type (for speedy math), e.g.
+The bindings also support let, which works like a regular `let` in the
+inner loop, but casts to the array type (for speedy math), e.g.
 
 ```clojure
 (au/afill!
   [x xs
   :let [alpha 5 delta (- x 9)]]
-  (* alpha delta)) 
+  (* x alpha delta)) 
 ```
 
 Be aware that `:let` explicitly disallows shadowing the array
-bindings. `(afill! [x xs :let [x 5] ] x)` returns an
+bindings, e. g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
 `IllegalArgumentException`. Do also note that destructuring syntax is
-currently not supported.
+not supported.
 
+# API overview
 
-# Examples
+## Iteration (with bindings)
 
-## areduce
+These macros use the bindings explained above.
+
+### areduce
 
 ```clojure
 ;; The maximum ratio entries of two vectors.
 (au/areduce [x xs y ys] result 1 (max result (/ x y)))
 ```
 
-## asum
+### asum
 
 ```clojure
 ;; dot product
@@ -126,7 +141,7 @@ currently not supported.
 (au/asum [x xs :range [0 10]] x)
 ```
 
-## aproduct
+### aproduct
 
 ```clojure
 ;; Compute a joint probability.
@@ -134,14 +149,19 @@ currently not supported.
   (au/aproduct [x xs] (/ x scale)))
 ```
 
-## amap
+### amap
+
+Builds a new array from evaluating the expression at each step.
 
 ```clojure
 ;; Take the max of two arrays.
 (au/amap [x xs y ys] (max x y))
 ```
 
-## afill!
+### afill!
+
+Like `amap`, but instead of building a new array, changes the *first*
+array in-place.
 
 ```clojure
 ;; Add a constant to an array.
@@ -152,7 +172,9 @@ currently not supported.
 (au/afill! [x xs] (if (< 0 x) 999 x))
 ```
 
-## doarr
+### doarr
+
+Like `doseq`, but for arrays. Presumably used for side-effects.
 
 ```clojure
 ;; Apply some java object's function.
@@ -161,7 +183,9 @@ currently not supported.
   (.getResult java-thing))
 ```
 
-## Functions
+TODO: Refactor this.
+
+## Array functions
 
 There are also a few common utility functions available:
 
@@ -178,17 +202,28 @@ There are also a few common utility functions available:
 (au/dot-product xs ys)
 ;; Length of an array.
 (au/alength xs)
+;; Clones an array.
+(au/aclone xs)
+;; Get the 2nd element.
+(au/aget xs 2)
+;; Set the 2nd element to 42.
+(au/aset xs 2 42)
+;; Increment the 2nd element by 42.
+(au/ainc 2 42)
+;; Make a new array with 10 000 elements generated with `rand`. Bind
+   the index-variable to idx.
+(au/amake [idx 42] (rand idx)) 
 ```
 
 # Caveats
 
 New versions of Leiningen set JVM options that might prevent the JVM
-from doing some optimizations to your code. If your benchmarks seem to
-be regressing, make sure to add `:jvm-opts ^:replace []` to your
+from doing some optimizations to your code. If your code seems
+unreasonbly slow, make sure to add `:jvm-opts ^:replace []` to your
 `project.clj`.
 
 # License
 
-Copyright © 2013 Emil Flakk.
+Copyright © 2013 Emil Flakk, Jason Wolfe, Leon Bennet.
 
 Distributed under the Eclipse Public License, the same as Clojure.
