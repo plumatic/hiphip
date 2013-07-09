@@ -66,6 +66,7 @@
 (defn test-index-partition-ops [s k]
   (let [a (into-arr s)
         pivot (nth a k)]
+    (is (= (map long a) s))
     (let [indices (hiphip.IndexArrays/make 0 (count s))]
       (is (partitioned? (de-index a (hiphip/apartition-indices indices a pivot)) pivot)))
     (let [indices (hiphip.IndexArrays/make 0 (count s))]
@@ -74,8 +75,69 @@
     (is (max-sorted? (de-index a (hiphip/amax-indices a k)) k))
     (is (min-sorted? (de-index a (hiphip/amin-indices a k)) k))))
 
+(deftest big-partition-and-sort-ops-test
+  (let [n 1000
+        r (java.util.Random. 1)]
+    (doseq [[test-name t] {"direct" test-direct-partition-ops
+                           "indirect" test-index-partition-ops}
+            [seq-name s] {"zeros" (repeat n 0)
+                          "asc" (range n)
+                          "desc" (reverse (range n))
+                          "rand" (repeatedly n #(.nextInt r 10000))
+                          "rand-repeated" (repeatedly n #(.nextInt r 100))}
+            k [1 10 50 100 500 900 950 990 999]]
+      (testing (format "%s opts on %s with k=%s" test-name n k)
+        (t s k)))))
+
+(deftest simple-partition-and-sort-opts-test
+  (is (= [1 1 2 2 2 3]
+         (map long (hiphip/apartition (into-arr [2 1 2 1 2 3]) 2))))
+  (is (= [1 1 2 2]
+         (map long (hiphip/aselect (into-arr [1 2 2 1]) 2))))
+  (is (= [1 2 3 4]
+         (map long (hiphip/asort (into-arr [4 2 3 1])))))
+  (is (= [3 3 4]
+         (take-last 3 (map long (hiphip/asort-max (into-arr [-2 3 4 2 3 1 -1]) 3)))))
+  (is (= [-2 -1 1]
+         (take 3 (map long (hiphip/asort-min (into-arr [-2 3 4 2 3 1 -1]) 3)))))
+
+  (is (= [1 2 0]
+         (seq (hiphip/apartition-indices (hiphip.IndexArrays/make 0 3)
+                                         (into-arr [3 1 2]) 2))))
+  (is (= [1 0]
+         (seq (hiphip/aselect-indices (hiphip.IndexArrays/make 0 2) (into-arr [2 1]) 1))))
+  (is (= [3 1 2 0]
+         (seq (hiphip/asort-indices (into-arr [4 2 3 1])))))
+  (is (= [4 2 1]
+         (take-last 3 (hiphip/amax-indices (into-arr [-2 5 4 2 3 1 -1]) 3))))
+  (is (= [0 6 5]
+         (take 3 (hiphip/amin-indices (into-arr [-2 3 4 2 3 1 -1]) 3)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Miscellaneous extra tests
+;;; Simple tests for typehinted hiphip.array fns, including :let and :range
+
+(deftest simple-binding-macro-test
+  (is (= [1 2 3] (map long (hiphip/amake [i 3] (inc i)))))
+  (is (= 10 (hiphip/areduce [x (into-arr [1 2 3 4])] r 0 (+ r (long x)))))
+  (is (= 26 (hiphip/areduce [:range [1 3]
+                             x (into-arr [1 2 3 4])
+                             :let [y (* x 2)]]
+                            r 0 (+ r (long (* x y))))))
+  (let [res (atom [])]
+    (hiphip/doarr [:range [1 3]
+                   [i x] (into-arr [1 2 3 4])
+                   :let [y (+ i x)]]
+                  (swap! res conj [i (long x) (long y)]))
+    (is (= [[1 2 3] [2 3 5]] @res)))
+  (is (= [3 5]
+         (map long (hiphip/amap [:range [1 3]
+                                 [i x] (into-arr [1 2 3 4])
+                                 :let [y (+ i x)]]
+                                y))))
+  (let [a (into-arr [1 2 3 4])]
+    (is (= a (hiphip/afill! [:range [1 3] x a x a :let [y (* x x)]]
+                            (+ y 2))))
+    (is (= [1 6 11 4] (map long a)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Benchmark/equality tests

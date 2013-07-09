@@ -101,6 +101,9 @@
   `(let [xs# ~xs ys# ~ys]
      (asum [x# xs# y# ys#] (* x# y#))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Selecting minimal/maximal elements and sorting
+
 (definline amax-index
   "Maximum over an array.
    Uses Java for now for maximum efficiency.

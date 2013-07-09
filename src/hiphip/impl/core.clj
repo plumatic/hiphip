@@ -139,10 +139,10 @@
 
 (defn hint-binding [type [left right]]
   (case left
-    :range [left right]
-    :let (->> (partition 2 right)
-              (mapcat (fn [[sym val]] `[~sym ~(value-cast type val)]))
-              vec)
+    :range [:range right]
+    :let [:let (->> (partition 2 right)
+                    (mapcat (fn [[sym val]] `[~sym ~(value-cast type val)]))
+                    vec)]
     [left (array-cast type right)]))
 
 (defn hint-bindings [type bindings]
