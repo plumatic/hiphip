@@ -72,6 +72,17 @@
   1.1 (do (hiphip/doarr [[i x] xs y ys] (hiphip/aset xs i (* x y))) xs)
   1.1 (hiphip/afill! [x xs y ys] (* x y)))
 
+(defbenchmarktype doarr-and-afill-range!
+  (Baseline/multiply_end_in_place_pointwise xs ys)
+  1.1 (do (hiphip/doarr [:range [(quot (alength xs) 2) (alength xs)]
+                         [i x] xs
+                         y ys]
+                        (hiphip/aset xs i (* x y))) xs)
+  1.1 (hiphip/afill! [:range [(quot (alength xs) 2) (alength xs)]
+                      x xs
+                      y ys]
+                     (* x y)))
+
 (defbenchmarktype afill!
   (Baseline/multiply_in_place_by_idx xs)
   1.1 (hiphip/afill! [[i x] xs] (* x i)))
@@ -85,6 +96,10 @@
   1.1 (hiphip/amap [x xs] (inc x))
   nil (amap xs i ret (aset ret i (inc (aget xs i)))))
 
+(defbenchmarktype amap-range
+  (Baseline/amap_end_inc xs)
+  1.1 (hiphip/amap [:range [(quot (alength xs) 2) (alength xs)] x xs] (inc x)))
+
 (defbenchmarktype amap-with-index
   (Baseline/amap_plus_idx xs)
   1.1 (hiphip/amap [[i x] xs] (+ i x)))
@@ -94,6 +109,10 @@
   1.1 (hiphip/asum xs)
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (aget xs i)))
   nil (reduce + xs))
+
+(defbenchmarktype asum-range
+  (Baseline/asum_end xs)
+  1.1 (hiphip/asum [:range [(quot (alength xs) 2) (alength xs)] x xs] x))
 
 (defbenchmarktype asum-op
   (Baseline/asum_square xs)
@@ -170,22 +189,5 @@
             :when (.startsWith ^String (name n) "bench-")]
       (testing (name n)
         (t (gen-array size 0) (gen-array size 1))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Missing tests
-
-(comment
-  (defspec asum-sums-range
-    (fn [xs]
-      (asum [x xs :range [50 100]] x))
-    [^{:tag (`array-gen)} xs]
-    (assert (= % (apply + (take 50 (drop 50 xs))))))
-
-  (defspec afill!-replaces-interval
-    (fn [xs]
-      (afill! [x xs :range [1 4]] 2)
-      xs)
-    [^{:tag (`range-gen)} xs]
-    (assert (every? true? (map == (concat [0.0 2.0 2.0 2.0] (range 4 10e3)) xs)))))
 
 (set! *warn-on-reflection* false)

@@ -46,6 +46,14 @@ public class Baseline {
     return xs;
   }
 
+  public static float[] multiply_end_in_place_pointwise(float[] xs, float[] ys) {
+    for(int i = (xs.length)/2; i < xs.length; i++) {
+      xs[i] *= ys[i];
+    }
+    return xs;
+  }
+
+
   // tests afill!
   public static float[] multiply_in_place_by_idx(float[] xs) {
     for(int i = 0; i < xs.length; i++) {
@@ -70,6 +78,15 @@ public class Baseline {
     }
     return ret;
   }
+  
+  public static float[] amap_end_inc(float[] arr) {
+    int h1 = arr.length/2, h2 = arr.length - h1;
+    float[] ret = new float[h2];
+    for (int i = 0; i < h2; i++) {
+      ret[i] = arr[i+h1] + 1;
+    }
+    return ret;
+  }
 
   public static float[] amap_plus_idx(float[] arr) {
     float[] newarr = new float[arr.length];
@@ -83,6 +100,14 @@ public class Baseline {
     float s = 0;
     for (float d : arr) {
       s += d;
+    }
+    return s;
+  }
+
+  public static float asum_end(float[] arr) {
+    float s = 0;
+    for (int i = arr.length/2; i < arr.length; i++) {
+      s += arr[i];
     }
     return s;
   }

@@ -46,6 +46,14 @@ public class Baseline {
     return xs;
   }
 
+  public static double[] multiply_end_in_place_pointwise(double[] xs, double[] ys) {
+    for(int i = (xs.length)/2; i < xs.length; i++) {
+      xs[i] *= ys[i];
+    }
+    return xs;
+  }
+
+
   // tests afill!
   public static double[] multiply_in_place_by_idx(double[] xs) {
     for(int i = 0; i < xs.length; i++) {
@@ -70,6 +78,15 @@ public class Baseline {
     }
     return ret;
   }
+  
+  public static double[] amap_end_inc(double[] arr) {
+    int h1 = arr.length/2, h2 = arr.length - h1;
+    double[] ret = new double[h2];
+    for (int i = 0; i < h2; i++) {
+      ret[i] = arr[i+h1] + 1;
+    }
+    return ret;
+  }
 
   public static double[] amap_plus_idx(double[] arr) {
     double[] newarr = new double[arr.length];
@@ -83,6 +100,14 @@ public class Baseline {
     double s = 0;
     for (double d : arr) {
       s += d;
+    }
+    return s;
+  }
+
+  public static double asum_end(double[] arr) {
+    double s = 0;
+    for (int i = arr.length/2; i < arr.length; i++) {
+      s += arr[i];
     }
     return s;
   }
