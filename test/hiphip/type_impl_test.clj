@@ -45,7 +45,7 @@
   (let [v (vec s)]
     (hiphip/amake [i (count v)] (nth v i))))
 
-(defn test-direct-partition-ops [s k]
+(defn direct-partition-ops-tests [s k]
   (let [a (into-arr s)
         pivot (nth a k)]
     (is (= a (hiphip/apartition a pivot)))
@@ -63,7 +63,7 @@
     (is (= a (hiphip/asort-min a k)))
     (is (min-sorted? a k))))
 
-(defn test-index-partition-ops [s k]
+(defn index-partition-ops-tests [s k]
   (let [a (into-arr s)
         pivot (nth a k)]
     (is (= (map long a) s))
@@ -78,8 +78,8 @@
 (deftest big-partition-and-sort-ops-test
   (let [n 1000
         r (java.util.Random. 1)]
-    (doseq [[test-name t] {"direct" test-direct-partition-ops
-                           "indirect" test-index-partition-ops}
+    (doseq [[test-name t] {"direct" direct-partition-ops-tests
+                           "indirect" index-partition-ops-tests}
             [seq-name s] {"zeros" (repeat n 0)
                           "asc" (range n)
                           "desc" (reverse (range n))
@@ -142,6 +142,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Benchmark/equality tests
 
+(defn- select-slowness
+  "If slowness is given as a type map, pull out the correct value"
+  [slowness-and-exprs]
+  (->> (partition 2 slowness-and-exprs)
+       (mapcat (fn [[slowness expr]]
+                 [(if (map? slowness) (get slowness (keyword (name +type+))) slowness)
+                  expr]))))
+
 (defmacro defbenchmarktype
   "Wrapper around defbenchmark for fns that take two arrays of the primitive type being tested,
    and allows expressing type-dependent slowness like:
@@ -150,18 +158,11 @@
   (assert (even? (count slowness-and-exprs)))
   `(defbenchmark ~name [~(impl/array-cast +type+ 'xs) ~(impl/array-cast +type+ 'ys)]
      ~expr
-     ~@(->> (partition 2 slowness-and-exprs)
-            (mapcat (fn [[slowness expr]]
-                      [(if (map? slowness) (get slowness (keyword (name +type+))) slowness)
-                       expr])))))
+     ~@(select-slowness slowness-and-exprs)))
 
 (defbenchmarktype aclone
   (Baseline/aclone xs)
-  1.1 (hiphip/aclone xs)
-
-  ;; 1.1 (double-array (hiphip/alength xs))
-  ;; 1.1 (make-array Double/TYPE (hiphip/alength xs))
-  )
+  1.1 (hiphip/aclone xs))
 
 (defbenchmarktype alength
   (Baseline/alength xs)
@@ -183,6 +184,10 @@
 (defbenchmarktype ainc
   (Baseline/ainc xs 0 1)
   1.1 (hiphip/ainc xs 0 1))
+
+(defbenchmarktype amake
+  (Baseline/acopy_inc (hiphip/alength xs) xs)
+  1.1 (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
 
 (defmacro hinted-hiphip-areduce [bind ret-sym init final]
   `(hiphip/areduce ~bind ~ret-sym ~(impl/value-cast +type+ init) ~final))
@@ -213,18 +218,14 @@
                       y ys]
                      (* x y)))
 
-(defbenchmarktype afill!
-  (Baseline/multiply_in_place_by_idx xs)
-  1.1 (hiphip/afill! [[i x] xs] (* x i)))
-
-(defbenchmarktype amake
-  (Baseline/acopy_inc (hiphip/alength xs) xs)
-  1.1 (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
-
 (defbenchmarktype amap
   (Baseline/amap_inc xs)
   1.1 (hiphip/amap [x xs] (inc x))
   nil (amap xs i ret (aset ret i (inc (aget xs i)))))
+
+(defbenchmarktype afill!
+  (Baseline/multiply_in_place_by_idx xs)
+  1.1 (hiphip/afill! [[i x] xs] (* x i)))
 
 (defbenchmarktype amap-range
   (Baseline/amap_end_inc xs)
@@ -252,53 +253,31 @@
   (Baseline/aproduct xs)
   1.1 (hiphip/aproduct xs))
 
-(comment
-  (defmacro amax
-    "Maximum over an array."
-    [xs]
-    `(areduce [x# ~xs] m# ~(:min-value type-info) (~(:etype type-info) (if (> m# x#) m# x#))))
-
-  (defmacro amax2
-    "Maximum over an array."
-    [xs]
-    `(aget ~xs (Baseline/maxIndex ~xs)))
-
-  (defmacro amax3
-    "Maximum over an array."
-    [xs]
-    `(let [xs# ~xs
-           len# (alength xs#)]
-       (loop [i# 1 m# (aget xs# 0)]
-         (if (== i# len#)
-           m#
-           (let [v# (aget xs# i#)]
-             (if (> v# m#)
-               (recur (unchecked-inc-int i#) v#)
-               (recur (unchecked-inc-int i#) m#))))))))
-
-(defbenchmarktype amax-index
-  (hiphip/amax-index xs)
-  ;; 1.7 (hiphip/amax-index2 xs)
-  ;; ;; 1.7 (hiphip/amax2 xs)
-  ;; ;; 1.7 (hiphip/amax3 xs)
-  )
-
-(defbenchmarktype amax
-  (Baseline/amax xs)
-  ;; amax is inexplicably slower with *unchecked-math* on...
-  1.7 (hiphip/amax xs)
-  ;; 1.7 (hiphip/amax2 xs)
-  ;; 1.7 (hiphip/amax3 xs)
-  )
-
-(defbenchmarktype amin
-  (Baseline/amin xs)
-  ;; amax is inexplicably slower with *unchecked-math* on...
-  1.7 (hiphip/amin xs))
-
 (defbenchmarktype amean
   (Baseline/amean xs)
   1.1 (hiphip/amean xs))
+
+
+(defmacro amax-clj
+  "Maximum over an array."
+  [xs]
+  (let [rsym (gensym "r") xsym (gensym "x")]
+    `(let [xs# ~xs]
+       (hiphip/areduce [~xsym xs#]
+                       ~rsym
+                       (aget xs# 0)
+                       ~(impl/value-cast +type+ `(if (> ~rsym ~xsym) ~rsym ~xsym))))))
+
+;; these implicitly test max/min-index
+(defbenchmarktype amax
+  (Baseline/amax xs)
+  1.1 (hiphip/amax xs)
+  ;; best non-java version -- actually slower with unchecked-math?
+  2.0 (amax-clj xs))
+
+(defbenchmarktype amin
+  (Baseline/amin xs)
+  1.1 (hiphip/amin xs))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -319,5 +298,31 @@
             :when (.startsWith ^String (name n) "bench-")]
       (testing (name n)
         (t (gen-array size 0) (gen-array size 1))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Test sorting ops, with no equality and differnet data
+
+(defmacro deftestfasttype
+  "Wrapper around deftestfast -- like defbenchmarktype, but does not declare a test."
+  [name expr & slowness-and-exprs]
+  (assert (even? (count slowness-and-exprs)))
+  `(deftestfast ~name [~(impl/array-cast +type+ 'xs) ~(impl/array-cast +type+ 'ys)]
+     ~expr
+     ~@(select-slowness slowness-and-exprs)))
+
+(deftestfasttype sort-ops
+  (java.util.Arrays/sort xs)
+  0.15 (hiphip/aselect xs (quot (alength xs) 2))
+  0.3 (hiphip/aselect xs (quot (alength xs) 10))
+  0.3 (hiphip/aselect xs 1)
+  0.03 (hiphip/amax xs)
+  0.4 (hiphip/asort-max xs (quot (alength xs) 10))
+  6.0 (hiphip/asort-indices xs)
+  1.5 (hiphip/amax-indices xs (quot (alength xs) 10))
+  0.7 (hiphip/amax-indices xs 5))
+
+(defn run-sort-ops []
+  (let [r (java.util.Random. 1)]
+    (sort-ops (double-array (repeatedly 10000 #(.nextInt r 1000000))) (double-array 10000))))
 
 (set! *warn-on-reflection* false)
