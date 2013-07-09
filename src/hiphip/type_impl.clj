@@ -106,7 +106,7 @@
    Uses Java for now for maximum efficiency.
    See benchmarks for our current best performance in pure Clojure."
   [xs]
-  `(JavaBaseline/maxIndex ~xs))
+  `(Helpers/maxIndex ~xs))
 
 (definline amax
   "Maximum over an array."
@@ -118,7 +118,7 @@
    Uses Java for now for maximum efficiency.
    See benchmarks for our current best performance in pure Clojure."
   [xs]
-  `(JavaBaseline/minIndex ~xs))
+  `(Helpers/minIndex ~xs))
 
 (definline amin
   "Maximum over an array."
@@ -131,12 +131,12 @@
    Returns 1 + the smallest index pointing at an element > pivot after the partitioning."
   ([xs pivot] `(let [xs# ~xs] (apartition xs# 0 (alength xs#) ~pivot)))
   ([xs start stop pivot]
-     `(doto ~xs (JavaBaseline/partition ~start ~stop ~pivot))))
+     `(doto ~xs (Helpers/partition ~start ~stop ~pivot))))
 
 (defmacro aselect
   ([xs k] `(let [xs# ~xs] (aselect xs# 0 (alength xs#) ~k)))
   ([xs start stop k]
-     `(doto ~xs (JavaBaseline/select ~start ~stop ~k))))
+     `(doto ~xs (Helpers/select ~start ~stop ~k))))
 
 (defmacro asort
   ([xs]
@@ -170,14 +170,14 @@
      `(let [indices# ~indices]
         (apartition-indices indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~pivot)))
   ([indices xs start stop pivot]
-     `(doto ~indices (JavaBaseline/partitionIndices ~xs ~start ~stop ~pivot))))
+     `(doto ~indices (Helpers/partitionIndices ~xs ~start ~stop ~pivot))))
 
 (defmacro aselect-indices
   ([indices xs k]
      `(let [indices# ~indices]
         (aselect-indices indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~k)))
   ([indices xs start stop k]
-     `(doto ~indices (JavaBaseline/selectIndices ~xs ~start ~stop ~k))))
+     `(doto ~indices (Helpers/selectIndices ~xs ~start ~stop ~k))))
 
 (defmacro asort-indices
   ([xs]
@@ -189,7 +189,7 @@
      `(doto (hiphip.IndexArrays/make ~start ~stop)
         (asort-indices ~xs)))
   ([indices xs start stop]
-     `(doto ~indices (JavaBaseline/sortIndices ~xs ~start ~stop))))
+     `(doto ~indices (Helpers/sortIndices ~xs ~start ~stop))))
 
 ;; TODO: fix weird API?
 (defn ^ints amax-indices

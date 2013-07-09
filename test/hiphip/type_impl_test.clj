@@ -1,6 +1,6 @@
 ;;; Benchmark code shared between array types.
 ;; Assumes the appropriate hiphip array type ns has been aliased as 'hiphip',
-;; and the appropriate Java baseline class has been imported as 'JavaBaseline'
+;; and the appropriate Java baseline class has been imported as 'Baseline'
 
 (use 'clojure.test 'hiphip.test-utils)
 (require '[hiphip.impl.core :as impl])
@@ -26,7 +26,7 @@
                        expr])))))
 
 (defbenchmarktype aclone
-  (JavaBaseline/aclone xs)
+  (Baseline/aclone xs)
   1.1 (hiphip/aclone xs)
 
   ;; 1.1 (double-array (hiphip/alength xs))
@@ -34,7 +34,7 @@
   )
 
 (defbenchmarktype alength
-  (JavaBaseline/alength xs)
+  (Baseline/alength xs)
   1.1 (hiphip/alength xs)
   ;; failure cases for testing the tests
   ;; 1.2 (inc (hiphip/alength xs))
@@ -43,15 +43,15 @@
   )
 
 (defbenchmarktype aget
-  (JavaBaseline/aget xs 0)
+  (Baseline/aget xs 0)
   1.1 (hiphip/aget xs 0))
 
 (defbenchmarktype aset
-  (JavaBaseline/aset xs 0 42)
+  (Baseline/aset xs 0 42)
   1.1 (hiphip/aset xs 0 42))
 
 (defbenchmarktype ainc
-  (JavaBaseline/ainc xs 0 1)
+  (Baseline/ainc xs 0 1)
   1.1 (hiphip/ainc xs 0 1))
 
 (defmacro hinted-hiphip-areduce [bind ret-sym init final]
@@ -61,46 +61,46 @@
   `(areduce ~arr-sym ~idx-sym ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
 (defbenchmarktype areduce-and-dot-product
-  (JavaBaseline/dot_product xs ys)
+  (Baseline/dot_product xs ys)
   1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
   1.1 (hiphip/dot-product xs ys)
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
   nil (reduce + (map * xs ys)))
 
 (defbenchmarktype doarr-and-afill!
-  (JavaBaseline/multiply_in_place_pointwise xs ys)
+  (Baseline/multiply_in_place_pointwise xs ys)
   1.1 (do (hiphip/doarr [[i x] xs y ys] (hiphip/aset xs i (* x y))) xs)
   1.1 (hiphip/afill! [x xs y ys] (* x y)))
 
 (defbenchmarktype afill!
-  (JavaBaseline/multiply_in_place_by_idx xs)
+  (Baseline/multiply_in_place_by_idx xs)
   1.1 (hiphip/afill! [[i x] xs] (* x i)))
 
 (defbenchmarktype amake
-  (JavaBaseline/acopy_inc (hiphip/alength xs) xs)
+  (Baseline/acopy_inc (hiphip/alength xs) xs)
   1.1 (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
 
 (defbenchmarktype amap
-  (JavaBaseline/amap_inc xs)
+  (Baseline/amap_inc xs)
   1.1 (hiphip/amap [x xs] (inc x))
   nil (amap xs i ret (aset ret i (inc (aget xs i)))))
 
 (defbenchmarktype amap-with-index
-  (JavaBaseline/amap_plus_idx xs)
+  (Baseline/amap_plus_idx xs)
   1.1 (hiphip/amap [[i x] xs] (+ i x)))
 
 (defbenchmarktype asum
-  (JavaBaseline/asum xs)
+  (Baseline/asum xs)
   1.1 (hiphip/asum xs)
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (aget xs i)))
   nil (reduce + xs))
 
 (defbenchmarktype asum-op
-  (JavaBaseline/asum_square xs)
+  (Baseline/asum_square xs)
   1.1 (hiphip/asum [x xs] (* x x)))
 
 (defbenchmarktype aproduct
-  (JavaBaseline/aproduct xs)
+  (Baseline/aproduct xs)
   1.1 (hiphip/aproduct xs))
 
 (comment
@@ -112,7 +112,7 @@
   (defmacro amax2
     "Maximum over an array."
     [xs]
-    `(aget ~xs (JavaBaseline/maxIndex ~xs)))
+    `(aget ~xs (Baseline/maxIndex ~xs)))
 
   (defmacro amax3
     "Maximum over an array."
@@ -135,7 +135,7 @@
   )
 
 (defbenchmarktype amax
-  (JavaBaseline/amax xs)
+  (Baseline/amax xs)
   ;; amax is inexplicably slower with *unchecked-math* on...
   1.7 (hiphip/amax xs)
   ;; 1.7 (hiphip/amax2 xs)
@@ -143,12 +143,12 @@
   )
 
 (defbenchmarktype amin
-  (JavaBaseline/amin xs)
+  (Baseline/amin xs)
   ;; amax is inexplicably slower with *unchecked-math* on...
   1.7 (hiphip/amin xs))
 
 (defbenchmarktype amean
-  (JavaBaseline/amean xs)
+  (Baseline/amean xs)
   1.1 (hiphip/amean xs))
 
 

@@ -1,135 +1,12 @@
-package hiphip.float_;
+package hiphip.long_;
 
 import clojure.lang.IFn;
 
-public class JavaBaseline {
-  /*********************************************************************************************
-   * Functions equivalent to (specific applications of) hiphip macros for benchmarking and
-   * testing purposes.
-   *********************************************************************************************/
-
-  public static int alength(float [] arr) {
-    return arr.length;
-  }
-
-  public static float aget(float [] arr, int idx) {
-    return arr[idx];
-  }
-
-  public static float aset(float [] arr, int idx, float v) {
-    arr[idx] = v;
-    return v;
-  }
-
-  public static float ainc(float [] arr, int idx, int v) {
-    return arr[idx]+=v;
-  }
-  
-  public static float[] aclone(float [] arr) {
-    return arr.clone();
-  }
-  
-  // tests areduce and dot-product 
-  public static float dot_product(float[] arr1, float[] arr2) {
-    float s = 0;
-    for (int i = 0; i < arr1.length; i++) {
-      s += arr1[i] * arr2[i];
-    }
-    return s;
-  }
-
-  
-  // tests doarr and afill!
-  public static float[] multiply_in_place_pointwise(float[] xs, float[] ys) {
-    for(int i = 0; i < xs.length; i++) {
-      xs[i] *= ys[i];
-    }
-    return xs;
-  }
-
-  // tests afill!
-  public static float[] multiply_in_place_by_idx(float[] xs) {
-    for(int i = 0; i < xs.length; i++) {
-      xs[i] *= i;
-    }
-    return xs;
-  }
-
-  // tests amake
-  public static float[] acopy_inc(int len, float[] ys) {
-    float[] ret = new float[len];
-    for(int i = 0; i < len; i++) {
-      ret[i] = ys[i] + 1;
-    }
-    return ret;
-  }
-
-  public static float[] amap_inc(float[] arr) {
-    float[] ret = new float[arr.length];
-    for (int i = 0; i < arr.length; i++) {
-      ret[i] = arr[i] + 1;
-    }
-    return ret;
-  }
-
-  public static float[] amap_plus_idx(float[] arr) {
-    float[] newarr = new float[arr.length];
-    for (int i = 0; i < arr.length; i++) {
-      newarr[i] = arr[i] + i;
-    }
-    return newarr;
-  }
-
-  public static float asum(float[] arr) {
-    float s = 0;
-    for (float d : arr) {
-      s += d;
-    }
-    return s;
-  }
-
-  public static float asum_square(float[] arr) {
-    float s = 0;
-    for (float d : arr) {
-      s += d * d;
-    }
-    return s;
-  }
-
-  public static float aproduct(float[] arr) {
-    float s = 1;
-    for (float d : arr) {
-      s *= d;
-    }
-    return s;
-  }
-
-  public static float amax(float[] arr) {
-    float m = arr[0];
-    for (int i = 1; i < arr.length; i++) {
-      float v = arr[i];
-      if (v > m) m = v;
-    }
-    return m;
-  }
-
-  public static float amin(float[] arr) {
-    float m = arr[0];
-    for (int i = 1; i < arr.length; i++) {
-      float v = arr[i];
-      if (v < m) m = v;
-    }
-    return m;
-  }
-
-  public static float amean(float[] arr) {
-    return asum(arr) / arr.length;
-  }
- 
-  /*********************************************************************************************
-   * Functions used within hiphip API, since we couldn't (yet) generate pure Clojure versions 
-   * that are (close to) as efficient as Java.
-   *********************************************************************************************/
+/*********************************************************************************************
+ * Functions used within hiphip API, since we couldn't (yet) generate pure Clojure versions 
+ * that are (close to) as efficient as Java.
+ *********************************************************************************************/
+public class Helpers {
 
   /**
   * Returns the first index of a largest value in xs, which must have nonzero length.
@@ -137,11 +14,11 @@ public class JavaBaseline {
   * @param xs the array
   * @return   the first index of a maximum value in xs
   */    
-  public static int maxIndex(float[] xs) {
+  public static int maxIndex(long[] xs) {
     int am = 0;
-    float m = xs[0];
+    long m = xs[0];
     for (int i=1; i < xs.length; ++i) {
-      float v = xs[i];
+      long v = xs[i];
       if (v > m) {
 	m = v;
 	am = i;
@@ -156,11 +33,11 @@ public class JavaBaseline {
   * @param xs the array
   * @return   the first index of a minimum value in xs
   */    
-  public static int minIndex(float[] xs) {
+  public static int minIndex(long[] xs) {
     int am = 0;
-    float m = xs[0];
+    long m = xs[0];
     for (int i=1; i < xs.length; ++i) {
-      float v = xs[i];
+      long v = xs[i];
       if (v < m) {
 	m = v;
 	am = i;
@@ -169,8 +46,8 @@ public class JavaBaseline {
     return am;
   }
 
-  private static void swap(float[] arr, int i, int j) {
-    float tmp = arr[i];
+  private static void swap(long[] arr, int i, int j) {
+    long tmp = arr[i];
     arr[i] = arr[j];
     arr[j] = tmp;
   }
@@ -187,7 +64,7 @@ public class JavaBaseline {
   * @param  pivot the value to partition by 
   * @return       the 1 + the greatest index less than or equal to pivot.
   */    
-  public static int partition(float[] arr, int left, int right, float pivot) {
+  public static int partition(long[] arr, int left, int right, long pivot) {
     int i = left,  // right of last element known less than pivot
         j = right;   // first element known greater than pivot
     for (int k = i; k < j; k++) {
@@ -206,7 +83,7 @@ public class JavaBaseline {
     return j;
   }
 
-  private static float choosePivot(float[] arr, int left, int right) {
+  private static long choosePivot(long[] arr, int left, int right) {
     return arr[(left+right)/2];
   }
   
@@ -221,8 +98,8 @@ public class JavaBaseline {
   * @param  right the index to stop selecting at
   * @param  k     the number of elements to select
   */    
-  public static void select(float[] arr, int left, int right, int k) {
-    float pivot = choosePivot(arr, left, right);
+  public static void select(long[] arr, int left, int right, int k) {
+    long pivot = choosePivot(arr, left, right);
     int part = partition(arr, left, right, pivot);
             
     if (part < k) {
@@ -254,7 +131,7 @@ public class JavaBaseline {
   * @param  pivot   the value to partition by 
   * @return         the 1 + the greatest index less than or equal to pivot.
   */    
-  public static int partitionIndices(int [] indices, float[] arr, int left, int right, float pivot) {
+  public static int partitionIndices(int [] indices, long[] arr, int left, int right, long pivot) {
     int i = left,  // right of last element known less than pivot
         j = right;   // first element known greater than pivot
     for (int k = i; k < j; k++) {
@@ -273,7 +150,7 @@ public class JavaBaseline {
     return j;
   }
   
-  private static float choosePivot(int[] indices, float[] arr, int left, int right) {
+  private static long choosePivot(int[] indices, long[] arr, int left, int right) {
     return arr[indices[(left+right)/2]];
   }
   
@@ -289,8 +166,8 @@ public class JavaBaseline {
   * @param  right   the index to stop selecting at
   * @param  k       the number of elements to select
   */    
-  public static void selectIndices(int[] indices, float[] arr, int left, int right, int k) {
-    float pivot = choosePivot(indices, arr, left, right);
+  public static void selectIndices(int[] indices, long[] arr, int left, int right, int k) {
+    long pivot = choosePivot(indices, arr, left, right);
     int part = partitionIndices(indices, arr, left, right, pivot);
     if (part < k) {
       selectIndices(indices, arr, part, right, k - part);
@@ -317,8 +194,8 @@ public class JavaBaseline {
   * @param  left    the index to start sorting at 
   * @param  right   the index to stop sorting at
   */    
-  public static void sortIndices(int[] indices, float[] arr, int left, int right) {
-    float pivot = choosePivot(indices, arr, left, right);
+  public static void sortIndices(int[] indices, long[] arr, int left, int right) {
+    long pivot = choosePivot(indices, arr, left, right);
     int part = partitionIndices(indices, arr, left, right, pivot);
     if (part+1 < right) sortIndices(indices, arr, part, right);
     part--;
