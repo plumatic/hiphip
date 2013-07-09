@@ -175,7 +175,7 @@
 ;;; Simple top-level tests
 
 (defn gen-array [size phase]
-  (hiphip/amake [i size] (nth [-2 3 0 -1 0 1 -1 2 3] (mod i 9))))
+  (hiphip/amake [i size] (nth [-2 3 0 -1 0 1 -1 2 3] (mod (+ i phase) 9))))
 
 (let [me *ns*]
   (defn all-tests [size]

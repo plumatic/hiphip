@@ -46,7 +46,8 @@
   [type len]
   (if-let [type-info (impl/primitive-type-info type)]
     `(~(:constructor type-info) ~len)
-    (impl/array-cast type `(make-array ~type ~len))))
+    (with-meta `(clojure.core/make-array ~type ~len)
+      {:tag (format "[L%s;" (.getName ^Class (resolve type)))})))
 
 (defmacro amake
   "Make a new array of length len and element type type and fill it

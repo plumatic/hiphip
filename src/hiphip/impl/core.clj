@@ -57,11 +57,11 @@
     nil))
 
 (defn array-cast
-  "Produce an unchecked cast for the value of a given type"
+  "Produce an array hint for a primitive array expr of a given type"
   [type expr]
-  (with-meta expr {:tag (if-let [type-info (primitive-type-info type)]
-                          (:array-tag type-info)
-                          (format "[L%s;" (.getName ^Class type)))}))
+  (let [type-info (primitive-type-info type)]
+    (assert type-info)
+    (with-meta expr {:tag (:array-tag type-info)})))
 
 (defn value-cast
   "Produce an unchecked cast for the value of a given type"

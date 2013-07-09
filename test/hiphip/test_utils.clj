@@ -14,11 +14,22 @@
 (defmacro result-or-ex [form]
   `(try ~form (catch Exception e# {:exception e#})))
 
+(defn- array-class? [x]
+  (or (#{'objects 'doubles 'floats 'longs 'ints 'shorts 'chars 'bytes 'booleans} x)
+      (and (string? x) (.startsWith ^String x "["))))
+
+(defn clone-args [arg-syms]
+  (->> (for [a arg-syms] [a (if (array-class? (:tag (meta a)))
+                              `(aclone ~a)
+                              a)])
+       (apply concat)
+       vec))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generating tests for equivalence of benchmark forms
 
 (defmacro expr-results [arg-syms expr]
-  `(let ~(vec (apply concat (for [a arg-syms] [a `(aclone ~a)])))
+  `(let ~(clone-args arg-syms)
      {:expr (quote ~expr)
       :args ~arg-syms
       :result (result-or-ex ~expr)}))
@@ -47,7 +58,7 @@
                           (test/is (not e#) "expr threw an exception")
                           (do (doseq [[i# base-arg# arg#] (map vector (range) ~base-args args#)]
                                 (test/testing (format "%sth inputs are equal after the op" i#)
-                                  (test/is (= (seq base-arg#) (seq arg#)))))
+                                  (test/is (= (=-able base-arg#) (=-able arg#)))))
                               (test/testing "return values are equivalent"
                                 (test/is (= (=-able ~base-result) (=-able result#)))))))))))))))
 
@@ -56,7 +67,7 @@
 ;;; Generating tests and tables for performance of benchmark forms
 
 (defmacro bench-results [arg-syms [slowness expr]]
-  `(let ~(vec (apply concat (for [a arg-syms] [a `(aclone ~a)])))
+  `(let ~(clone-args arg-syms)
      {:expr (quote ~expr)
       :slowness ~slowness
       :results (result-or-ex (criterium/quick-benchmark ~expr {}))}))
