@@ -90,8 +90,7 @@ public class Helpers {
   /**
   * Selects the top k elements of an array using a quickselect algorithm.  Given an array 
   * arr, a range in this array [left, right), and an int k, modifies arr so that the  
-  * smallest k elements come first, followed by all ties for k, followed by all greater
-  * elements.
+  * smallest k elements come first, followed by all greater elements.
   * 
   * @param  arr   the array to be selected
   * @param  left  the index to start selecting at 
@@ -102,15 +101,15 @@ public class Helpers {
     int pivot = choosePivot(arr, left, right);
     int part = partition(arr, left, right, pivot);
             
-    if (part < k) {
-      select(arr, part, right, k - part);
-    } else if (k < part) {
+    if (part - left < k) {
+      select(arr, part, right, k - (part - left));
+    } else if (k < part - left) {
       part--;
       // Skip over all elements equal to pivot
       assert pivot == arr[part];
       do {
         part--;
-        if (part < k) return;
+        if (part - left < k) return;
       } while(arr[part] == pivot);
       select(arr, left, part+1, k);
     }
@@ -158,7 +157,7 @@ public class Helpers {
   * Selects the top k indices of an array using a quickselect algorithm.  Given an array 
   * arr, an array of indices into this array, a range in indices [left, right), and  
   * an int k, modifies indices so that the indices pointing at the smallest k elements 
-  * come first, followed by all ties for k, followed by all greater elements.
+  * come first, followed by all greater elements.
   * 
   * @param  indices indices into the array to be selected
   * @param  arr     the array to be selected
@@ -169,15 +168,15 @@ public class Helpers {
   public static void selectIndices(int[] indices, int[] arr, int left, int right, int k) {
     int pivot = choosePivot(indices, arr, left, right);
     int part = partitionIndices(indices, arr, left, right, pivot);
-    if (part < k) {
-      selectIndices(indices, arr, part, right, k - part);
-    } else if (k < part) {
+    if (part - left < k) {
+      selectIndices(indices, arr, part, right, k - (part - left));
+    } else if (k < part - left) {
       part--;
       // Skip over all elements equal to pivot
       assert pivot == arr[indices[part]];
       do {
         part--;
-        if (part < k) return;
+        if (part - left < k) return;
       } while(arr[indices[part]] == pivot);
       selectIndices(indices, arr, left, part+1, k);
     }

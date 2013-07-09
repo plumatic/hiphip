@@ -191,7 +191,6 @@
   ([indices xs start stop]
      `(doto ~indices (Helpers/sortIndices ~xs ~start ~stop))))
 
-;; TODO: fix weird API?
 (defn ^ints amax-indices
   "Return an array of indices where the last k elements point at the max
    k elements of xs in ascending order (and the remaining elements point
