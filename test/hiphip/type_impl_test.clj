@@ -189,17 +189,30 @@
   (Baseline/acopy_inc (hiphip/alength xs) xs)
   1.1 (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
 
+;; helpers for areduce-and-dot-product
+
 (defmacro hinted-hiphip-areduce [bind ret-sym init final]
   `(hiphip/areduce ~bind ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
 (defmacro hinted-clojure-areduce [arr-sym idx-sym ret-sym init final]
   `(areduce ~arr-sym ~idx-sym ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
+(defn clojure-areduce-dot-product [^doubles xs ^doubles ys]
+  (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i)))))
+
+(set! *unchecked-math* true)
+
+(defn clojure-areduce-dot-product-unchecked [^doubles xs ^doubles ys]
+  (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i)))))
+
+(set! *unchecked-math* false)
+
 (defbenchmarktype areduce-and-dot-product
   (Baseline/dot_product xs ys)
   1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
   1.1 (hiphip/dot-product xs ys)
-  nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
+  nil (clojure-areduce-dot-product xs ys)
+  nil (clojure-areduce-dot-product-unchecked xs ys)
   nil (reduce + (map * xs ys)))
 
 (defbenchmarktype doarr-and-afill!
@@ -278,7 +291,6 @@
 (defbenchmarktype amin
   (Baseline/amin xs)
   1.1 (hiphip/amin xs))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Top-level benchmark/equality test runners
