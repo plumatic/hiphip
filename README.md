@@ -118,7 +118,7 @@ not supported.
 
 # API overview
 
-## Iteration (with bindings)
+## Iteration
 
 These macros use the bindings explained above. For more examples,
 please see the docstrings.
@@ -184,23 +184,27 @@ Like `doseq`, but for arrays. Presumably used for side-effects.
   (.getResult java-thing))
 ```
 
-## Array functions
+# Array functions
 
-TODO: Refactor this. Maybe partition into math, sorting, utility?
-
-There are also a few common utility functions available:
+## Math
 
 ```clojure
-;; Sum an array.
-(au/asum xs)
-;; Maximum over an array
-(au/amax xs)
-;; Minimum over an array
-(au/amin xs)
-;; Average of an array
-(au/amean xs)
+;; Sum of an array
+(asum xs)
+;; Product (big pi) of an array
+(aproduct xs)
+;; Mean over an array
+(amean xs)
 ;; Dot product of two arrays
-(au/dot-product xs ys)
+(dot-product xs ys)
+```
+
+## Utility
+
+We provide pre-hinted versions of `aclone` et. al, in addition to a
+couple of other useful functions.
+
+```clojure
 ;; Length of an array.
 (au/alength xs)
 ;; Clones an array.
@@ -209,12 +213,46 @@ There are also a few common utility functions available:
 (au/aget xs 2)
 ;; Set the 2nd element to 42.
 (au/aset xs 2 42)
-;; Increment the 2nd element by 42.
-(au/ainc 2 42)
+;; Increment the 2nd element by 57.
+(au/ainc 2 57)
 ;; Make a new array with 10 000 elements generated with `rand`. Bind
-   the index-variable to idx.
+;; the index-variable to idx.
 (au/amake [idx 42] (rand idx)) 
 ```
+
+## Sorting and minimum/maximum
+
+Note: These are mostly written in Java for pure speed, as it was
+difficult to match Java's performance for in-place sorting.
+
+```clojure
+;; Maximum over an array
+(au/amax xs)
+;; Minimum over an array
+(au/amin xs)
+;; Index of maximum
+(au/amax-index xs)
+;; Index of minimum
+(au/amin-index)
+
+;; Sort array in-place
+(au/asort! max)
+;; Sort xs using a pivot.
+(au/apartition! xs 5.4)
+;; Modifies xs s. t. the smallest 42 elements come first, followed by
+;; all greater elements. 
+(au/select! xs 42)
+;; Sort array in-place, so that the last 42 elements are the largest
+;; 42 elements in descending order 
+(au/asort-max! xs 42)
+;; Sort array in-place, so that the first 42 elements are the smallest
+;; 42 elements in descending order 
+(asort-min! xs 42)
+```
+
+In addition, these functions come in versions either returning or
+modifying arrays of indices. Please refer to their docstrings for how
+to use them.
 
 # Caveats
 
@@ -228,8 +266,3 @@ unreasonbly slow, make sure to add `:jvm-opts ^:replace []` to your
 Copyright © 2013 Emil Flakk, Jason Wolfe, Leon Bennet.
 
 Distributed under the Eclipse Public License, the same as Clojure.
-
-TODO:
-
-- rewrite hiphip.array docs to explain bindings
-- add example code to each function in type_impl
