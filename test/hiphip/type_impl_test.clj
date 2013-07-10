@@ -178,13 +178,16 @@
   (Baseline/aset xs 0 42)
   1.1 (hiphip/aset xs 0 42))
 
+(set! *unchecked-math* true)
+
 (defbenchmarktype ainc
   (Baseline/ainc xs 0 1)
   1.1 (hiphip/ainc xs 0 1))
 
 (defbenchmarktype amake
   (Baseline/acopy_inc (hiphip/alength xs) xs)
-  1.1 (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
+  {:double 1.1 :float 1.7 :long 1.9 :int 1.3}
+  (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
 
 ;; helpers for areduce-and-dot-product
 
@@ -194,70 +197,107 @@
 (defmacro hinted-clojure-areduce [arr-sym idx-sym ret-sym init final]
   `(areduce ~arr-sym ~idx-sym ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
-(defbenchmarktype areduce-and-dot-product
+(set! *unchecked-math* false)
+
+(defbenchmarktype areduce-and-dot-product-no-unchecked
   (Baseline/dot_product xs ys)
-  1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
-  1.1 (hiphip/dot-product xs ys)
+
+  {:double 1.1 :float 1.7 :long 10.0 :int 10.0}
+  (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
+
+  {:double 1.1 :float 1.7 :long 10.0 :int 10.0}
+  (hiphip/dot-product xs ys)
+
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
   nil (reduce + (map * xs ys)))
 
 (set! *unchecked-math* true)
 
-(defbenchmarktype areduce-and-dot-product-unchecked
+(defbenchmarktype areduce-and-dot-product
   (Baseline/dot_product xs ys)
-  1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
-  1.1 (hiphip/dot-product xs ys)
+
+  {:double 1.4 :float 1.8 :long 2.6 :int 2.9}
+  (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
+
+  {:double 1.4 :float 1.8 :long 2.6 :int 2.9}
+  (hiphip/dot-product xs ys)
+
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
   nil (reduce + (map * xs ys)))
 
-(set! *unchecked-math* false)
-
 (defbenchmarktype doarr-and-afill!
   (Baseline/multiply_in_place_pointwise xs ys)
-  1.1 (do (hiphip/doarr [[i x] xs y ys] (hiphip/aset xs i (* x y))) xs)
-  1.1 (hiphip/afill! [x xs y ys] (* x y)))
+
+  {:double 1.4 :float 3.3 :long 1.6 :int 2.4}
+  (do (hiphip/doarr [[i x] xs y ys] (hiphip/aset xs i (* x y))) xs)
+
+  {:double 1.4 :float 3.3 :long 1.6 :int 2.4}
+  (hiphip/afill! [x xs y ys] (* x y)))
 
 (defbenchmarktype doarr-and-afill-range!
   (Baseline/multiply_end_in_place_pointwise xs ys)
-  1.1 (do (hiphip/doarr [:range [(quot (alength xs) 2) (alength xs)]
-                         [i x] xs
-                         y ys]
-                        (hiphip/aset xs i (* x y))) xs)
-  1.1 (hiphip/afill! [:range [(quot (alength xs) 2) (alength xs)]
-                      x xs
-                      y ys]
-                     (* x y)))
+
+  {:double 1.5 :float 3.3 :long 1.6 :int 2.4}
+  (do (hiphip/doarr [:range [(quot (alength xs) 2) (alength xs)]
+                     [i x] xs
+                     y ys]
+                    (hiphip/aset xs i (* x y)))
+      xs)
+
+  {:double 1.5 :float 3.3 :long 1.6 :int 2.4}
+  (hiphip/afill! [:range [(quot (alength xs) 2) (alength xs)]
+                  x xs
+                  y ys]
+                 (* x y)))
+
+;; slightly faster for double with unchecked off
+(defbenchmarktype afill-with-index!
+  (Baseline/multiply_in_place_by_idx xs)
+  2.8 (hiphip/afill! [[i x] xs] (* x i)))
 
 (defbenchmarktype amap
   (Baseline/amap_inc xs)
-  1.1 (hiphip/amap [x xs] (inc x))
+  {:double 1.1 :float 1.7 :long 1.1 :int 1.4}
+  (hiphip/amap [x xs] (inc x))
   nil (amap xs i ret (aset ret i (inc (aget xs i)))))
-
-(defbenchmarktype afill!
-  (Baseline/multiply_in_place_by_idx xs)
-  1.1 (hiphip/afill! [[i x] xs] (* x i)))
 
 (defbenchmarktype amap-range
   (Baseline/amap_end_inc xs)
-  1.1 (hiphip/amap [:range [(quot (alength xs) 2) (alength xs)] x xs] (inc x)))
+  {:double 1.5 :float 2.2 :long 1.3 :int 1.6}
+  (hiphip/amap [:range [(quot (alength xs) 2) (alength xs)] x xs] (inc x)))
 
 (defbenchmarktype amap-with-index
   (Baseline/amap_plus_idx xs)
-  1.1 (hiphip/amap [[i x] xs] (+ i x)))
+  {:double 1.1 :float 1.4 :long 1.1 :int 1.3}
+  (hiphip/amap [[i x] xs] (+ i x)))
 
 (defbenchmarktype asum
   (Baseline/asum xs)
-  1.1 (hiphip/asum xs)
+
+  {:double 1.1 :float 1.1 :long 3.3 :int 2.4}
+  (hiphip/asum xs)
+
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (aget xs i)))
   nil (reduce + xs))
 
 (defbenchmarktype asum-range
   (Baseline/asum_end xs)
-  1.1 (hiphip/asum [:range [(quot (alength xs) 2) (alength xs)] x xs] x))
+  {:double 1.1 :float 1.1 :long 7.0 :int 2.6}
+  (hiphip/asum [:range [(quot (alength xs) 2) (alength xs)] x xs] x))
+
+(set! *unchecked-math* false)
+
+(defbenchmarktype asum-op-no-unchecked
+  (Baseline/asum_square xs)
+  {:double 1.1 :float 1.6 :long 4.0 :int 3.2}
+  (hiphip/asum [x xs] (* x x)))
+
+(set! *unchecked-math* true)
 
 (defbenchmarktype asum-op
   (Baseline/asum_square xs)
-  1.1 (hiphip/asum [x xs] (* x x)))
+  {:double 1.1 :float 2.2 :long 2.3 :int 1.7}
+  (hiphip/asum [x xs] (* x x)))
 
 (defbenchmarktype aproduct
   (Baseline/aproduct xs)
@@ -265,7 +305,8 @@
 
 (defbenchmarktype amean
   (Baseline/amean xs)
-  1.1 (hiphip/amean xs))
+  {:double 1.1 :float 1.1 :long 3.3 :int 3.3}
+  (hiphip/amean xs))
 
 
 (defmacro amax-clj
@@ -282,8 +323,7 @@
 (defbenchmarktype amax
   (Baseline/amax xs)
   1.1 (hiphip/amax xs)
-  ;; best non-java version -- actually slower with unchecked-math?
-  2.0 (amax-clj xs))
+  nil (amax-clj xs))
 
 (defbenchmarktype amin
   (Baseline/amin xs)
@@ -299,14 +339,12 @@
   (defn all-tests [size]
     (doseq [[n t] (ns-interns me)
             :when (.startsWith ^String (name n) "test-")]
-      (testing (name n)
-        (t (gen-array size 0) (gen-array size 1)))))
+      (t (gen-array size 0) (gen-array size 1))))
 
   (defn all-benches [size]
     (doseq [[n t] (ns-interns me)
             :when (.startsWith ^String (name n) "bench-")]
-      (testing (name n)
-        (t (gen-array size 0) (gen-array size 1))))))
+      (t (gen-array size 0) (gen-array size 1)))))
 
 (deftest hiphip-type-test
   (all-tests 10000))
@@ -316,6 +354,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Test sorting ops, with no equality and differnet data
+
+(set! *unchecked-math* false)
 
 (defmacro deftestfasttype
   "Wrapper around deftestfast -- like defbenchmarktype, but does not declare a test."
