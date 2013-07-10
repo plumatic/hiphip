@@ -1,40 +1,7 @@
-(ns hiphip.core
-  "A note on bindings: All these macros use binding forms that look like:
-
-  [[i x] xs
-   y ys
-   ...]
-
-  This binds i to the index and x and y to the ith element of xs and ys,
-  respectively. Note that unlike for/doseq, iteration over multiple arrays
-  is parallel rather than nested.
-
-  You can include index variables wherever and whenever you want, so you can do:
-
-  [x xs
-   y ys
-   ...]
-
-  or:
-
-  [[i1 x] xs
-   [i2 y] ys
-   [i3 z] zs
-   ...]
-
-  but i1, i2, and i3 will have the same value.
-
-  You can also include a range as a first element of the binding:
-
-  [:range [0 10]
-   [i x] xs]
-
-  and the operation will only be applied over that range. The default range
-  is from 0 to the length of the first array in the binding.
-
-  All of these are internal tools that require type information as
-  their first argument. Refer to type_impl.clj, double.clj, long.clj
-  et cetera for proper implementations.")
+(ns hiphip.impl.core
+  "Internal helpers for hiphip, including generating primitive-type-specific array code and
+   parsing hiphip-style array bindings."
+  (:import [clojure.lang RT]))
 
 (set! *warn-on-reflection* true)
 
@@ -59,20 +26,56 @@
   [basis tag]
   (with-meta (gensym basis) {:tag tag}))
 
-(defn parse-binding [type-info index-sym [left right]]
+(defn primitive-type-info
+  "Produce an map of helpers for an array type"
+  [type]
+  (case type
+    (double Double/TYPE clojure.core/double) {:array-tag 'doubles
+                                              :unchecked-cast `RT/uncheckedDoubleCast
+                                              :constructor `double-array}
+    (float Float/TYPE clojure.core/float) {:array-tag 'floats
+                                           :unchecked-cast `RT/uncheckedFloatCast
+                                           :constructor `float-array}
+    (long Long/TYPE clojure.core/long) {:array-tag 'longs
+                                        :unchecked-cast `RT/uncheckedLongCast
+                                        :constructor `long-array}
+    (int Integer/TYPE clojure.core/int) {:array-tag 'ints
+                                         :unchecked-cast `RT/uncheckedIntCast
+                                         :constructor `int-array}
+    (short Short/TYPE clojure.core/short) {:array-tag 'shorts
+                                           :unchecked-cast `RT/uncheckedShortCast
+                                           :constructor `short-array}
+    (byte Byte/TYPE clojure.core/byte) {:array-tag 'bytes
+                                        :unchecked-cast `RT/uncheckedByteCast
+                                        :constructor `byte-array}
+    (char Character/TYPE clojure.core/char) {:array-tag 'chars
+                                             :unchecked-cast `RT/uncheckedCharCast
+                                             :constructor `char-array}
+    (boolean Boolean/TYPE clojure.core/boolean) {:array-tag 'booleans
+                                                 :unchecked-cast `RT/booleanCast
+                                                 :constructor `boolean-array}
+    nil))
+
+(defn array-cast
+  "Produce an array hint for a primitive array expr of a given type"
+  [type expr]
+  (let [type-info (primitive-type-info type)]
+    (assert type-info)
+    (with-meta expr {:tag (:array-tag type-info)})))
+
+(defn value-cast
+  "Produce an unchecked cast for the value of a given type"
+  [type expr]
+  (if-let [type-info (primitive-type-info type)]
+    `(~(:unchecked-cast type-info) ~expr)
+    expr))
+
+(defn parse-binding [index-sym [left right]]
   (case left
-    :let
-    (do (assert-iae (and (vector? right) (even? (count right)))
-                    "Invalid let bindings %s; must look like :let [a 1 b 2]" right)
-        (let [transform (fn [[sym val]] `[~sym (~(:etype type-info) ~val)])
-              bindings (->>  (partition 2 right)
-                             (mapcat transform)
-                             (into []))]
-          {:let-bindings bindings}))
-    :range
-    (do (assert-iae (and (vector? right) (= (count right) 2))
-                    "Invalid range binding %s; must look like :range [10 20]" right)
-        {:range-exprs right})
+    :let {:let-bindings right}
+    :range (do (assert-iae (and (vector? right) (= (count right) 2))
+                           "Invalid range binding %s; must look like :range [10 20]" right)
+               {:range-exprs right})
     ;; else
     (let [[idx-sym val-sym] (if (symbol? left)
                               [nil left]
@@ -81,7 +84,7 @@
                                               left
                                               "val sym or pair of index and value syms")
                                   [(first left) (second left)]))
-          array-sym (typed-gensym 'arr (:atype type-info))]
+          array-sym (gensym "arr")]
       {:array-bindings [array-sym right]
        :value-bindings (into (if idx-sym [idx-sym index-sym] [])
                              [val-sym `(aget ~array-sym ~(intcast index-sym))])})))
@@ -96,7 +99,7 @@
     -- with array-sysm in the order provided in the input.
    :value-bindings - bindings [array-val array-sym ...
                                extra-index-sym index-sym]"
-  [type-info bindings]
+  [bindings]
   (assert-iae (even? (count bindings))
               "Array binding %s requires an even number of forms" bindings)
   (let [index-sym (gensym "i")
@@ -106,9 +109,9 @@
                 array-bindings
                 value-bindings
                 let-bindings]} (->> bindings
-                                      (partition 2)
-                                      (map #(parse-binding type-info index-sym %))
-                                      (apply merge-with (comp vec concat)))
+                                    (partition 2)
+                                    (map #(parse-binding index-sym %))
+                                    (apply merge-with (comp vec concat)))
         [start-expr stop-expr] (cond (empty? range-exprs)
                                      [0 `(alength ~(first array-bindings))]
 
@@ -125,12 +128,29 @@
                   "Variable `%s` shadowed by the let-binding in %s"
                   shadows
                   bindings))
+    (assert-iae (or (nil? let-bindings) (and (vector? let-bindings) (even? (count let-bindings))))
+                "Invalid let bindings %s; must look like :let [a 1 b 2]" let-bindings)
     {:index-sym index-sym
      :start-sym start-sym
      :stop-sym stop-sym
      :initial-bindings (into array-bindings
                              [start-sym start-expr stop-sym stop-expr])
      :value-bindings (into value-bindings let-bindings)}))
+
+(defn hint-binding [type [left right]]
+  (case left
+    :range [:range right]
+    :let [:let (->> (partition 2 right)
+                    (mapcat (fn [[sym val]] `[~sym ~(value-cast type val)]))
+                    vec)]
+    [left (array-cast type right)]))
+
+(defn hint-bindings [type bindings]
+  (assert-iae (even? (count bindings))
+              "Array binding %s requires an even number of forms" bindings)
+  (->> (partition 2 bindings)
+       (mapcat (partial hint-binding type))
+       vec))
 
 (defmacro dotimes-int
   "Like dotimes, but faster and only works on int ranges.  Also takes an optional
