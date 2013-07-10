@@ -9,4 +9,4 @@
 (def new-array float-array)
 (defn is-type? [n] (instance? Float n))
 
-(load "common")
+(load "type_impl_gen")

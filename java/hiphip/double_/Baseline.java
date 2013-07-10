@@ -146,7 +146,7 @@ public class Baseline {
     return m;
   }
 
-  public static double amean(double[] arr) {
-    return asum(arr) / arr.length;
+  public static Double amean(double[] arr) {
+    return (1.0 * asum(arr)) / arr.length;
   }
 }

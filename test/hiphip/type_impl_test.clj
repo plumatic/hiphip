@@ -9,9 +9,6 @@
 
 (set! *warn-on-reflection* true)
 
-;; TODO: some versions with and without unchecked math -- it actually makes many things slower.
-;; (set! *unchecked-math* true)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Tests for selection and partitioning
 
@@ -169,8 +166,8 @@
   1.1 (hiphip/alength xs)
   ;; failure cases for testing the tests
   ;; 1.2 (inc (hiphip/alength xs))
-  ;; 1.2 (do (aset xs 0 100.0) (hiphip/alength xs))
-  ;; 0.3 (do (aset ys 0 101.0) (hiphip/alength xs))
+  ;; 1.2 (do (hiphip/aset xs 0 100) (hiphip/alength xs))
+  ;; 0.3 (do (hiphip/aset ys 0 101) (hiphip/alength xs))
   )
 
 (defbenchmarktype aget
@@ -181,13 +178,16 @@
   (Baseline/aset xs 0 42)
   1.1 (hiphip/aset xs 0 42))
 
+(set! *unchecked-math* true)
+
 (defbenchmarktype ainc
   (Baseline/ainc xs 0 1)
   1.1 (hiphip/ainc xs 0 1))
 
 (defbenchmarktype amake
   (Baseline/acopy_inc (hiphip/alength xs) xs)
-  1.1 (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
+  {:double 1.1 :float 1.7 :long 1.9 :int 1.3}
+  (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
 
 ;; helpers for areduce-and-dot-product
 
@@ -197,70 +197,107 @@
 (defmacro hinted-clojure-areduce [arr-sym idx-sym ret-sym init final]
   `(areduce ~arr-sym ~idx-sym ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
-(defn clojure-areduce-dot-product [^doubles xs ^doubles ys]
-  (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i)))))
+(set! *unchecked-math* false)
+
+(defbenchmarktype areduce-and-dot-product-no-unchecked
+  (Baseline/dot_product xs ys)
+
+  {:double 1.1 :float 1.7 :long 30.0 :int 30.0}
+  (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
+
+  {:double 1.1 :float 1.7 :long 30.0 :int 30.0}
+  (hiphip/dot-product xs ys)
+
+  nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
+  nil (reduce + (map * xs ys)))
 
 (set! *unchecked-math* true)
 
-(defn clojure-areduce-dot-product-unchecked [^doubles xs ^doubles ys]
-  (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i)))))
-
-(set! *unchecked-math* false)
-
 (defbenchmarktype areduce-and-dot-product
   (Baseline/dot_product xs ys)
-  1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
-  1.1 (hiphip/dot-product xs ys)
-  nil (clojure-areduce-dot-product xs ys)
-  nil (clojure-areduce-dot-product-unchecked xs ys)
+
+  {:double 1.4 :float 1.8 :long 2.6 :int 2.9}
+  (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
+
+  {:double 1.4 :float 1.8 :long 2.6 :int 2.9}
+  (hiphip/dot-product xs ys)
+
+  nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
   nil (reduce + (map * xs ys)))
 
 (defbenchmarktype doarr-and-afill!
   (Baseline/multiply_in_place_pointwise xs ys)
-  1.1 (do (hiphip/doarr [[i x] xs y ys] (hiphip/aset xs i (* x y))) xs)
-  1.1 (hiphip/afill! [x xs y ys] (* x y)))
+
+  {:double 1.4 :float 3.3 :long 1.6 :int 2.4}
+  (do (hiphip/doarr [[i x] xs y ys] (hiphip/aset xs i (* x y))) xs)
+
+  {:double 1.4 :float 3.3 :long 1.6 :int 2.4}
+  (hiphip/afill! [x xs y ys] (* x y)))
 
 (defbenchmarktype doarr-and-afill-range!
   (Baseline/multiply_end_in_place_pointwise xs ys)
-  1.1 (do (hiphip/doarr [:range [(quot (alength xs) 2) (alength xs)]
-                         [i x] xs
-                         y ys]
-                        (hiphip/aset xs i (* x y))) xs)
-  1.1 (hiphip/afill! [:range [(quot (alength xs) 2) (alength xs)]
-                      x xs
-                      y ys]
-                     (* x y)))
+
+  {:double 1.5 :float 3.3 :long 1.6 :int 2.4}
+  (do (hiphip/doarr [:range [(quot (alength xs) 2) (alength xs)]
+                     [i x] xs
+                     y ys]
+                    (hiphip/aset xs i (* x y)))
+      xs)
+
+  {:double 1.5 :float 3.3 :long 1.6 :int 2.4}
+  (hiphip/afill! [:range [(quot (alength xs) 2) (alength xs)]
+                  x xs
+                  y ys]
+                 (* x y)))
+
+;; slightly faster for double with unchecked off
+(defbenchmarktype afill-with-index!
+  (Baseline/multiply_in_place_by_idx xs)
+  2.8 (hiphip/afill! [[i x] xs] (* x i)))
 
 (defbenchmarktype amap
   (Baseline/amap_inc xs)
-  1.1 (hiphip/amap [x xs] (inc x))
+  {:double 1.1 :float 1.7 :long 1.1 :int 1.4}
+  (hiphip/amap [x xs] (inc x))
   nil (amap xs i ret (aset ret i (inc (aget xs i)))))
-
-(defbenchmarktype afill!
-  (Baseline/multiply_in_place_by_idx xs)
-  1.1 (hiphip/afill! [[i x] xs] (* x i)))
 
 (defbenchmarktype amap-range
   (Baseline/amap_end_inc xs)
-  1.1 (hiphip/amap [:range [(quot (alength xs) 2) (alength xs)] x xs] (inc x)))
+  {:double 1.5 :float 2.2 :long 1.3 :int 1.6}
+  (hiphip/amap [:range [(quot (alength xs) 2) (alength xs)] x xs] (inc x)))
 
 (defbenchmarktype amap-with-index
   (Baseline/amap_plus_idx xs)
-  1.1 (hiphip/amap [[i x] xs] (+ i x)))
+  {:double 1.1 :float 1.5 :long 1.1 :int 1.3}
+  (hiphip/amap [[i x] xs] (+ i x)))
 
 (defbenchmarktype asum
   (Baseline/asum xs)
-  1.1 (hiphip/asum xs)
+
+  {:double 1.1 :float 1.1 :long 3.3 :int 2.4}
+  (hiphip/asum xs)
+
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (aget xs i)))
   nil (reduce + xs))
 
 (defbenchmarktype asum-range
   (Baseline/asum_end xs)
-  1.1 (hiphip/asum [:range [(quot (alength xs) 2) (alength xs)] x xs] x))
+  {:double 1.1 :float 1.1 :long 7.0 :int 2.6}
+  (hiphip/asum [:range [(quot (alength xs) 2) (alength xs)] x xs] x))
+
+(set! *unchecked-math* false)
+
+(defbenchmarktype asum-op-no-unchecked
+  (Baseline/asum_square xs)
+  {:double 1.1 :float 1.6 :long 25.0 :int 20.0}
+  (hiphip/asum [x xs] (* x x)))
+
+(set! *unchecked-math* true)
 
 (defbenchmarktype asum-op
   (Baseline/asum_square xs)
-  1.1 (hiphip/asum [x xs] (* x x)))
+  {:double 1.1 :float 2.2 :long 2.3 :int 1.7}
+  (hiphip/asum [x xs] (* x x)))
 
 (defbenchmarktype aproduct
   (Baseline/aproduct xs)
@@ -268,7 +305,8 @@
 
 (defbenchmarktype amean
   (Baseline/amean xs)
-  1.1 (hiphip/amean xs))
+  {:double 1.1 :float 1.1 :long 3.3 :int 3.3}
+  (hiphip/amean xs))
 
 
 (defmacro amax-clj
@@ -285,8 +323,7 @@
 (defbenchmarktype amax
   (Baseline/amax xs)
   1.1 (hiphip/amax xs)
-  ;; best non-java version -- actually slower with unchecked-math?
-  2.0 (amax-clj xs))
+  nil (amax-clj xs))
 
 (defbenchmarktype amin
   (Baseline/amin xs)
@@ -302,17 +339,23 @@
   (defn all-tests [size]
     (doseq [[n t] (ns-interns me)
             :when (.startsWith ^String (name n) "test-")]
-      (testing (name n)
-        (t (gen-array size 0) (gen-array size 1)))))
+      (t (gen-array size 0) (gen-array size 1))))
 
   (defn all-benches [size]
     (doseq [[n t] (ns-interns me)
             :when (.startsWith ^String (name n) "bench-")]
-      (testing (name n)
-        (t (gen-array size 0) (gen-array size 1))))))
+      (t (gen-array size 0) (gen-array size 1)))))
+
+(deftest hiphip-type-test
+  (all-tests 10000))
+
+(deftest ^:bench hiphip-type-bench
+  (all-benches 10000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Test sorting ops, with no equality and differnet data
+
+(set! *unchecked-math* false)
 
 (defmacro deftestfasttype
   "Wrapper around deftestfast -- like defbenchmarktype, but does not declare a test."
@@ -324,17 +367,18 @@
 
 (deftestfasttype sort-ops
   (java.util.Arrays/sort xs)
-  0.15 (hiphip/aselect xs (quot (alength xs) 2))
-  0.3 (hiphip/aselect xs (quot (alength xs) 10))
-  0.3 (hiphip/aselect xs 1)
+  0.1 (hiphip/aselect xs (quot (alength xs) 2))
+  0.2 (hiphip/aselect xs (quot (alength xs) 10))
+  0.2 (hiphip/aselect xs 1)
   0.03 (hiphip/amax xs)
-  0.4 (hiphip/asort-max xs (quot (alength xs) 10))
+  0.3 (hiphip/asort-max xs (quot (alength xs) 10))
   6.0 (hiphip/asort-indices xs)
-  1.5 (hiphip/amax-indices xs (quot (alength xs) 10))
-  0.7 (hiphip/amax-indices xs 5))
+  1.0 (hiphip/amax-indices xs (quot (alength xs) 10))
+  0.6 (hiphip/amax-indices xs 5))
 
-(defn run-sort-ops []
-  (let [r (java.util.Random. 1)]
-    (sort-ops (double-array (repeatedly 10000 #(.nextInt r 1000000))) (double-array 10000))))
+(deftest ^:bench sort-ops-bench
+  (let [r (java.util.Random. 1)
+        xs (hiphip/amake [_ 10000] (.nextInt r 1000000))]
+    (sort-ops xs xs)))
 
 (set! *warn-on-reflection* false)

@@ -105,6 +105,9 @@
   (test-fill-string-pointwise-product-dl
    (make-array String size) (gen-array double size 0) (gen-array long size 1)))
 
+(deftest hiphip-array-test
+  (all-tests 1000))
+
 (defn all-benches [size]
   (bench-make-double-array size)
   (bench-make-string-array size)
@@ -117,5 +120,8 @@
   (bench-multiply-in-place-pointwise-dl-unchecked (gen-array double size 0) (gen-array long size 1))
   (bench-fill-string-pointwise-product-dl
    (make-array String size) (gen-array double size 0) (gen-array long size 1)))
+
+(deftest ^:bench hiphip-array-bench
+  (all-benches 10000))
 
 (set! *warn-on-reflection* false)
