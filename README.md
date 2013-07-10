@@ -49,7 +49,7 @@ information.
 
 ## Tour de force
 
-Usually numerical code in Clojure is either flexible or fast. Why not
+Usually numerical code in Clojure is either elegant or fast. Why not
 both? Suppose you want do calculate the joint probability of an array
 of probabilities. You write this one-liner:
 
@@ -118,8 +118,8 @@ Why not add quantiles while you're at it?
 (defn quantile 
   "Like quantile*, but doesn't require a sorted array."
   [xs phi]
-  (let [new (dbl/aclone xs)]
-    (quantile* (dbl/asort! new) phi)))
+  (let [copy (dbl/aclone xs)]
+    (quantile* (dbl/asort! copy) phi)))
 ```
 
 **A simple and fast data analysis engine. Done.**
@@ -142,7 +142,7 @@ provide:
   and `aproduct`, which support iterating with bindings as well.
 
 * Sorting (in-place) and max/min functions (written in Java for pure
-  speed) like `amax` and `apartition`, with additional varities that
+  speed) like `amax` and `apartition!`, with additional varities that
   work on or return arrays of indices.
 
 For general looping needs, the library provides `hiphip.array`. The
