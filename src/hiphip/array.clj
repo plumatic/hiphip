@@ -1,41 +1,53 @@
 (ns hiphip.array
-  "Macros for iteration on generic arrays.  This namespace provides
+  "Macros for iteration on generic arrays. This namespace provides
    versions that can iterate over arbitrary mixtures of array types,
    but the arrays must be appropriately type hinted for good
-   performance.  The specific array type namespaces (double/float/...)
-   offer versions of these macros that do not require type hints, but
-   only work on arrays of the corresponding type.
+   performance. The specific array type namespaces (e.g.
+   `hiphip.double`) offer versions of these macros that do not require
+   type hints, but only work on arrays of the corresponding type.
 
    All these macros use binding forms that look like:
 
-   [[i x] xs
-    y ys ...]
+   [[i x] xs]
 
-   This binds i to the index and x and y to the ith element of xs and
-   ys, respectively. Note that unlike for/doseq, iteration over
-   multiple arrays is parallel rather than nested.
-
-   You can include index variables wherever and whenever you want, so
-   you can do:
+   This binds `i` to the current index and `x` to the ith element of
+   xs. The index-variable is optional, but there must be at least one
+   array binding. You can have as many array bindings as you want. For
+   example:
 
    [x xs
-    y ys ...]
+    y ys
+    z zs...] <expression involving x, y>)
 
-   or:
+   Iteration is parallel and not nested, ulike `for` and `doseq`.
+   Therefore, in
 
    [[i1 x] xs
     [i2 y] ys
     [i3 z] zs ...]
+   <expression involving i1, x, i2, y, i3, z> ```
 
-   but i1, i2, and i3 will have the same value.
+   the index-variables i1, i2, and i3 will have the same value.
 
-   You can also include a range as a first element of the binding:
+   You can specify a range for the operations. The default range is
+   from 0 to the length of the first array in the bindings.
 
-   [:range [0 10]
-    [i x] xs]
+   [[i x] xs
+   :range [0 10]]
 
-   and the operation will only be applied over that range. The default
-   range is from 0 to the length of the first array in the binding."
+   The bindings also support :let, which works like a regular `let` in
+   the inner loop. In the typed namespaces, it casts to the array
+   type (for speedy math), e.g.
+
+   [x xs
+   :let [alpha 5 delta (- x 9)]]
+   <expression involving x, alpha, delta>
+
+   Be aware that `:let` explicitly disallows shadowing the array
+   bindings, e. g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws
+   an `IllegalArgumentException`. Do also note that destructuring
+   syntax is not supported.
+  "
   (:refer-clojure :exclude [make-array amap areduce])
   (:require [hiphip.impl.core :as impl]))
 

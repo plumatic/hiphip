@@ -24,7 +24,7 @@
   (fn [xs]
     (amean xs))
   [^{:tag (`array-gen)} xs]
-  (assert (= (/ (reduce + xs) (count xs)) %)))
+  (assert (= (/ (double (reduce + xs)) (count xs)) %)))
 
 (defspec amax-returns-the-largest-number
   (fn [a]
