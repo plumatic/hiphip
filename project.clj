@@ -11,9 +11,9 @@
                    :dependencies [[org.clojure/clojure "1.5.1"]
                                   [criterium "0.4.1"]
                                   [org.clojure/test.generative "0.4.0"]]}}
-  :aliases {"gen-test" ["run" "-m" "hiphip.generative.run"]
-            "test" ["do" "test," "gen-test"]
-            "bench" ["run" "-m" "hiphip.benchmark"]}
+  :test-selectors {:fast #(not (or (:bench %) (:gen-test %)))
+                   :gen-test :gen-test
+                   :bench :bench}
   :warn-on-reflection true
   ;; Clear out devault JVM opts set by leiningen that trade startup time for
   ;; optimization, making Clojure array code run slow.

@@ -167,7 +167,7 @@
   "Mean over an array."
   [xs]
   `(let [xs# ~xs]
-     (/ (asum xs#) (alength xs#))))
+     (/ (double (asum xs#)) (alength xs#))))
 
 (defmacro dot-product
   "Dot product of two arrays."
