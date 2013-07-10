@@ -94,7 +94,7 @@
     `(let ~(into initial-bindings [out-sym `(make-array ~type (- ~stop-sym ~start-sym))])
        (impl/dotimes-int [~index-sym ~start-sym ~stop-sym]
                          (let ~value-bindings
-                           (aset ~out-sym (unchecked-subtract ~index-sym ~start-sym)
+                           (aset ~out-sym (unchecked-subtract-int ~index-sym ~start-sym)
                                  ~(impl/value-cast type form))))
        ~out-sym)))
 
