@@ -47,7 +47,7 @@
    (amake [_ 10e3] (rand-int 10))
 
    ;; array of squares
-   (amake [i 100] (* i i)) 
+   (amake [i 100] (* i i))
   "
   [[idx len] expr]
   `(array/amake ~+type+ [~idx ~len] ~expr))
@@ -58,11 +58,11 @@
   have the same semantics as those of a variable in a loop.
 
    ;; Sum a really, really large array without overflow
-   (areduce [x xs] ret 0 
+   (areduce [x xs] ret 0
      (+' ret x))
 
    ;; Frequencies of different elements
-   (areduce [x xs] ret {} 
+   (areduce [x xs] ret {}
      (assoc ret x (inc (get ret x 0))))
 
    ;; Return all non-composite numbers
@@ -77,14 +77,14 @@
 (defmacro doarr
   "Like doseq, but with hiphip-style array bindings (please see the
   `hiphip.array` docstring).
-  
+
    ;; Array to ArrayList
-   (let [alist (java.util.ArrayList.)] 
+   (let [alist (java.util.ArrayList.)]
      (doarr [x xs] (.add alist x))
      alist)
 
    ;; Print the fifty first elements
-   (doarr [x xs :range [0 50]] 
+   (doarr [x xs :range [0 50]]
      (println x))
   "
   [bindings & body]
@@ -103,7 +103,7 @@
    (amap [x xs y ys] (max x y))
 
    ;; Create an array from the first ten elements, all incremented
-   (amap [x xs :range [0 10]] (inc x)) 
+   (amap [x xs :range [0 10]] (inc x))
   "
   [bindings form]
   `(array/amap ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
@@ -286,8 +286,8 @@
   [xs ^long k]
   (let [len (alength xs)]
     (doto (hiphip.IndexArrays/make 0 len)
-      (aselect-indices xs (- len k))
-      (asort-indices xs (- len k) len))))
+      (aselect-indices! xs (- len k))
+      (asort-indices! xs (- len k) len))))
 
 (defn ^ints amin-indices
   "Return an array of indices where the first k elements point at the
@@ -296,6 +296,6 @@
   [xs ^long k]
   (doto (hiphip.IndexArrays/make 0 (alength xs))
     (aselect-indices! xs k)
-    (asort-indices xs 0 k)))
+    (asort-indices! xs 0 k)))
 
 (set! *warn-on-reflection* false)

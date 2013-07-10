@@ -45,19 +45,19 @@
 (defn direct-partition-ops-tests [s k]
   (let [a (into-arr s)
         pivot (nth a k)]
-    (is (= a (hiphip/apartition a pivot)))
+    (is (= a (hiphip/apartition! a pivot)))
     (is (partitioned? a pivot)))
   (let [a (into-arr s)]
-    (is (= a (hiphip/aselect a k)))
+    (is (= a (hiphip/aselect! a k)))
     (is (selected? a k)))
   (let [a (into-arr s)]
-    (is (= a (hiphip/asort a)))
+    (is (= a (hiphip/asort! a)))
     (is (ascending? a)))
   (let [a (into-arr s)]
-    (is (= a (hiphip/asort-max a k)))
+    (is (= a (hiphip/asort-max! a k)))
     (is (max-sorted? a k)))
   (let [a (into-arr s)]
-    (is (= a (hiphip/asort-min a k)))
+    (is (= a (hiphip/asort-min! a k)))
     (is (min-sorted? a k))))
 
 (defn index-partition-ops-tests [s k]
@@ -65,10 +65,10 @@
         pivot (nth a k)]
     (is (= (map long a) s))
     (let [indices (hiphip.IndexArrays/make 0 (count s))]
-      (is (partitioned? (de-index a (hiphip/apartition-indices indices a pivot)) pivot)))
+      (is (partitioned? (de-index a (hiphip/apartition-indices! indices a pivot)) pivot)))
     (let [indices (hiphip.IndexArrays/make 0 (count s))]
-      (is (selected? (de-index a (hiphip/aselect-indices indices a k)) k)))
-    (is (ascending? (de-index a (hiphip/asort-indices a))))
+      (is (selected? (de-index a (hiphip/aselect-indices! indices a k)) k)))
+    (is (ascending? (de-index a (hiphip/asort-indices! a))))
     (is (max-sorted? (de-index a (hiphip/amax-indices a k)) k))
     (is (min-sorted? (de-index a (hiphip/amin-indices a k)) k))))
 
@@ -88,23 +88,23 @@
 
 (deftest simple-partition-and-sort-opts-test
   (is (= [1 1 2 2 2 3]
-         (map long (hiphip/apartition (into-arr [2 1 2 1 2 3]) 2))))
+         (map long (hiphip/apartition! (into-arr [2 1 2 1 2 3]) 2))))
   (is (= [1 1 2 2]
-         (map long (hiphip/aselect (into-arr [1 2 2 1]) 2))))
+         (map long (hiphip/aselect! (into-arr [1 2 2 1]) 2))))
   (is (= [1 2 3 4]
-         (map long (hiphip/asort (into-arr [4 2 3 1])))))
+         (map long (hiphip/asort! (into-arr [4 2 3 1])))))
   (is (= [3 3 4]
-         (take-last 3 (map long (hiphip/asort-max (into-arr [-2 3 4 2 3 1 -1]) 3)))))
+         (take-last 3 (map long (hiphip/asort-max! (into-arr [-2 3 4 2 3 1 -1]) 3)))))
   (is (= [-2 -1 1]
-         (take 3 (map long (hiphip/asort-min (into-arr [-2 3 4 2 3 1 -1]) 3)))))
+         (take 3 (map long (hiphip/asort-min! (into-arr [-2 3 4 2 3 1 -1]) 3)))))
 
   (is (= [1 2 0]
-         (seq (hiphip/apartition-indices (hiphip.IndexArrays/make 0 3)
-                                         (into-arr [3 1 2]) 2))))
+         (seq (hiphip/apartition-indices! (hiphip.IndexArrays/make 0 3)
+                                          (into-arr [3 1 2]) 2))))
   (is (= [1 0]
-         (seq (hiphip/aselect-indices (hiphip.IndexArrays/make 0 2) (into-arr [2 1]) 1))))
+         (seq (hiphip/aselect-indices! (hiphip.IndexArrays/make 0 2) (into-arr [2 1]) 1))))
   (is (= [3 1 2 0]
-         (seq (hiphip/asort-indices (into-arr [4 2 3 1])))))
+         (seq (hiphip/asort-indices! (into-arr [4 2 3 1])))))
   (is (= [4 2 1]
          (take-last 3 (hiphip/amax-indices (into-arr [-2 5 4 2 3 1 -1]) 3))))
   (is (= [0 6 5]
@@ -367,12 +367,12 @@
 
 (deftestfasttype sort-ops
   (java.util.Arrays/sort xs)
-  0.1 (hiphip/aselect xs (quot (alength xs) 2))
-  0.2 (hiphip/aselect xs (quot (alength xs) 10))
-  0.2 (hiphip/aselect xs 1)
+  0.1 (hiphip/aselect! xs (quot (alength xs) 2))
+  0.2 (hiphip/aselect! xs (quot (alength xs) 10))
+  0.2 (hiphip/aselect! xs 1)
   0.03 (hiphip/amax xs)
-  0.3 (hiphip/asort-max xs (quot (alength xs) 10))
-  6.0 (hiphip/asort-indices xs)
+  0.3 (hiphip/asort-max! xs (quot (alength xs) 10))
+  6.0 (hiphip/asort-indices! xs)
   1.0 (hiphip/amax-indices xs (quot (alength xs) 10))
   0.6 (hiphip/amax-indices xs 5))
 
