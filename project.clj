@@ -1,6 +1,6 @@
 (defproject prismatic/hiphip "0.1.0-SNAPSHOT"
-  :description "Utility macros and functions to make working with
-                primitive arrays a bit simpler."
+  :description "hiphip (array!): elegant methods for doing fast math
+                with arrays in Clojure."
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}

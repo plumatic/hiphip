@@ -1,9 +1,12 @@
 hiphip (array)!
 ===========
 
-`hiphip` is an array macro library for Clojure. It offers more elegant
-ways for doing fast math with primitive arrays, be it in-place and
-functional.
+`hiphip` is an array library for Clojure, whicih provides elegant
+methods for fast math with primitive arrays.
+
+Leiningen dependency (Clojars): [prismatic/hiphip "0.1.0"]
+
+**This is an alpha release.  The API and organizational structure are subject to change.  Comments and contributions are much appreciated.**
 
 # Why?
 
@@ -26,7 +29,7 @@ or the faster but messier
 you can write the fast and simple
 ```clojure
 ;; 8.5 us
-(defn dot-product [ws xs] (au/asum [x xs w ws] (* x w)))
+(defn dot-product [ws xs] (hiphip.double/asum [x xs w ws] (* x w)))
 ```
 
 # About
@@ -261,8 +264,14 @@ from doing some optimizations to your code. If your code seems
 unreasonbly slow, make sure to add `:jvm-opts ^:replace []` to your
 `project.clj`.
 
+# Supported Clojure versions
+
+hiphip is currently supported on Clojure 1.5.x.
+
+# Contributors
+
+hiphip is the result of a collaboration between Prismatic, Emil Flakk, and Leon Barrett at Climate Corp.
+
 # License
 
-Copyright © 2013 Emil Flakk, Jason Wolfe, Leon Bennet.
-
-Distributed under the Eclipse Public License, the same as Clojure.
+Copyright (C) 2013 Emil Flakk, Leon Barrett, and Prismatic.  Distributed under the Eclipse Public License, the same as Clojure.
