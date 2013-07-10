@@ -202,10 +202,10 @@
 (defbenchmarktype areduce-and-dot-product-no-unchecked
   (Baseline/dot_product xs ys)
 
-  {:double 1.1 :float 1.7 :long 10.0 :int 10.0}
+  {:double 1.1 :float 1.7 :long 30.0 :int 30.0}
   (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
 
-  {:double 1.1 :float 1.7 :long 10.0 :int 10.0}
+  {:double 1.1 :float 1.7 :long 30.0 :int 30.0}
   (hiphip/dot-product xs ys)
 
   nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
@@ -268,7 +268,7 @@
 
 (defbenchmarktype amap-with-index
   (Baseline/amap_plus_idx xs)
-  {:double 1.1 :float 1.4 :long 1.1 :int 1.3}
+  {:double 1.1 :float 1.5 :long 1.1 :int 1.3}
   (hiphip/amap [[i x] xs] (+ i x)))
 
 (defbenchmarktype asum
@@ -289,7 +289,7 @@
 
 (defbenchmarktype asum-op-no-unchecked
   (Baseline/asum_square xs)
-  {:double 1.1 :float 1.6 :long 4.0 :int 3.2}
+  {:double 1.1 :float 1.6 :long 25.0 :int 20.0}
   (hiphip/asum [x xs] (* x x)))
 
 (set! *unchecked-math* true)
