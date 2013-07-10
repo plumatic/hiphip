@@ -5,9 +5,8 @@
 (set! *unchecked-math* true)
 (require '[hiphip.impl.core :as impl] '[hiphip.array :as array])
 
-;; ---------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Type hinted versions of clojure.core fns, plus ainc
-;; ---------------------------------------------------
 
 (definline aclone
   "aclone that doesn't require type hinting."
@@ -36,9 +35,8 @@
   `(let [idx# ~idx]
      (aset ~xs idx# (+ ~(impl/value-cast +type+ val) (aget ~xs idx#)))))
 
-;; ----------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Type hinted versions of hiphip.array functions
-;; ----------------------------------------------
 
 (defmacro amake
   "Make a new array of length len and fill it with values computed by expr.
@@ -125,9 +123,8 @@
   [bindings form]
   `(array/afill! ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
 
-;; -------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; More 'mathy' functions for the main numeric array types
-;; -------------------------------------------------------
 
 (defmacro asum
   "Like `(apply + xs)`, but for arrays. Supports for-each
@@ -175,12 +172,8 @@
   `(let [xs# ~xs ys# ~ys]
      (asum [x# xs# y# ys#] (* x# y#))))
 
-;; ----------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Selecting minimal/maximal elements and sorting
-;; ----------------------------------------------
-
-;; Todo: Make list of all mutating sorting functions so we can adhere
-;; to the Clojure convention of using !
 
 (definline amax-index
   "Maximum over an array.
