@@ -11,7 +11,7 @@ subject to change. Comments and contributions are much appreciated.**
 
 ## Why?
 
-Instead of writing
+This is what we want, but slow.
 
 ```clojure
 ;; 1ms for 10000 doubles
@@ -19,7 +19,7 @@ Instead of writing
   (reduce + (map * ws xs))
 ```
 
-or the faster but messier
+This is fast, but very declarative.
 
 ```clojure
 ;; 8.5 us
@@ -29,7 +29,7 @@ or the faster but messier
               (aget ws i))))
 ```
 
-you can write the fast and simple
+Why not both?
 
 ```clojure
 ;; 8.5 us
