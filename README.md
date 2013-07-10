@@ -38,7 +38,7 @@ you can write the fast and simple
 
 ## About
 
-`hiphip` provides functions and macros that require little or no
+HipHip provides functions and macros that require little or no
 manual type hinting, and they use a binding semantics similar to those
 of `for`. The bindings are explained below, and in `hiphip.array`.
 
@@ -166,7 +166,7 @@ binding. You can have as many array bindings as you want. For example:
   <expression involving x, y>)
 ```
 
-Iteration is parallel and not nested, ulike `for` and `doseq.
+Iteration is parallel and not nested, ulike `for` and `doseq`.
 Therefore, in
 
 ```clojure
@@ -270,11 +270,11 @@ involved options to Clojure and the the JVM.
 
 ## Supported Clojure versions
 
-hiphip is currently supported on Clojure 1.5.x.
+HipHip is currently supported on Clojure 1.5.x.
 
 ## Contributors
 
-hiphip is the result of a collaboration between Prismatic, Emil Flakk, and Leon Barrett at Climate Corp.
+HipHip is the result of a collaboration between Prismatic, Emil Flakk, and Leon Barrett at Climate Corp.
 
 ## License
 
