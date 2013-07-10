@@ -21,8 +21,8 @@ type namespaces (e.g. `hiphip.double`) contain all of the necessary
 type info, and load `type_impl.clj`, which then extracts the necessary
 type info and "primes" the API provided by `hiphip.array`.
 
-A benchmarking suite (runnable by calling `lein test`) is provided to
-make sure performance demands are met. If not, the tests fail. This is
+A benchmarking suite (see the README) is provided to make sure
+performance demands are met. If not, the tests fail. This is
 implemented using a technique similar to the one in the type
 namespaces. The functions are tested against Java equivalents and
 results are given in relative speeds. Ideally most of our code should

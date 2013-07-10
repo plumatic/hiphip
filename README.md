@@ -102,7 +102,11 @@ deviation. You also decide to add some other common utilities.
 
 (defn correlation [xs ys std-dev1 std-dev2]
   (/ (covariance xs ys) (* std-dev1 std-dev2)))
+```
 
+Why not add quantiles while you're on it?
+
+```clojure
 (defn quantile* 
   "Given a sorted array, returns an element s. t. phi percent of the
   elements are less than this element"
@@ -117,7 +121,7 @@ deviation. You also decide to add some other common utilities.
     (quantile* (dbl/asort! new) phi)))
 ```
 
-A simple and fast data analysis engine. Done.
+**A simple and fast data analysis engine. Done.**
 
 ## API overview
 
@@ -130,11 +134,11 @@ provide:
   our own versions of `amap` and `areduce`.
 
 * Drop-in, pre-hinted versions of most of Clojure's existing utilities
-  for dealing with arrays, e.g. `alength` and `aset`. Additionaly new
-  ones like functions like `ainc` and `amake`.
+  for dealing with arrays, e.g. `alength` and `aset`. Also new
+  utilities like `ainc` and `amake`.
 
-* Common math utils like `asum` and `aproduct` (both with optional
-  bindings), as well as `amean` and `dot-product`.
+* Common math operations like `asum` and `aproduct` (both with
+  optional bindings), as well as `amean` and `dot-product`.
 
 * Sorting (in-place) and max/min functions (written in Java for pure
   speed) like `amax` and `apartition`, with additional varities that
