@@ -36,7 +36,8 @@
    :range [0 10]]
 
    The bindings also support :let, which works like a regular `let` in
-   the inner loop, but casts to the array type (for speedy math), e.g.
+   the inner loop. In the typed namespaces, casts to the array
+   type (for speedy math), e.g.
 
    [x xs
    :let [alpha 5 delta (- x 9)]]
