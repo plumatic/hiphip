@@ -42,9 +42,10 @@ HipHip provides functions and macros that require little or no manual
 type hinting, with binding semantics similar to those of `for`. The
 bindings are explained below, and in `hiphip.array`.
 
-The library currently supports arrays of floats, doubles, ints, and
-longs. You can extend to other types by providing type information to
-the functions in `hiphip.array`. Please see `DEVELOPERS.md` for more
+The library currently provides a suite of operations for fast math on
+arrays of floats, doubles, ints, and longs, in `hiphip.double` and so on,
+as well as simple simple macros for constructing and iterating over 
+arbitrary array types in `hiphip.array`. Please see `DEVELOPERS.md` for more
 information.
 
 ## Tour de force
@@ -69,8 +70,8 @@ in-place.
     (dbl/afill! [x xs] (/ x sum))))
 
 (defn weight-and-normalize! [xs ys]
-  (do (dbl/afill! [x xs y ys] (* x y))
-      (normalize! xs)))
+  (dbl/afill! [x xs y ys] (* x y))
+  (normalize! xs))
 ```
 
 Next, your boss tells you to write a function for finding the
