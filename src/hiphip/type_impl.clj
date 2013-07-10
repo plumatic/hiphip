@@ -179,6 +179,9 @@
 ;; Selecting minimal/maximal elements and sorting
 ;; ----------------------------------------------
 
+;; Todo: Make list of all mutating sorting functions so we can adhere
+;; to the Clojure convention of using !
+
 (definline amax-index
   "Maximum over an array.
 
@@ -193,7 +196,7 @@
   `(let [xs# ~xs] (aget xs# (amax-index xs#))))
 
 (definline amin-index
-  "Maximum over an array.
+  "Minimum over an array.
 
    Uses Java for now for maximum efficiency. See benchmarks for our
    current best performance in pure Clojure."
@@ -201,25 +204,25 @@
   `(Helpers/minIndex ~xs))
 
 (definline amin
-  "Maximum over an array."
+  "Minimum over an array."
   [xs]
   `(let [xs# ~xs] (aget xs# (amin-index xs#))))
 
-(defmacro apartition
+(defmacro apartition!
   "Mutate array xs in range [start stop) so that elements less than pivot come first,
    followed by elements equal to pivot, followed by elements greater
    than pivot. Returns 1 + the smallest index pointing at an element >
    pivot after the partitioning."
-  ([xs pivot] `(let [xs# ~xs] (apartition xs# 0 (alength xs#) ~pivot)))
+  ([xs pivot] `(let [xs# ~xs] (apartition! xs# 0 (alength xs#) ~pivot)))
   ([xs start stop pivot]
      `(doto ~xs (Helpers/partition ~start ~stop ~pivot))))
 
-(defmacro aselect
-  ([xs k] `(let [xs# ~xs] (aselect xs# 0 (alength xs#) ~k)))
+(defmacro aselect!
+  ([xs k] `(let [xs# ~xs] (aselect! xs# 0 (alength xs#) ~k)))
   ([xs start stop k]
      `(doto ~xs (Helpers/select ~start ~stop ~k))))
 
-(defmacro asort
+(defmacro asort!
   "Sorts an array in-place."
   ([xs]
      `(doto ~(impl/array-cast +type+ xs)
@@ -228,48 +231,48 @@
      `(doto ~(impl/array-cast +type+ xs)
         (java.util.Arrays/sort ~start ~stop))))
 
-(defn asort-max
+(defn asort-max!
   "Rearrange xs so that the last k elements are the top k in ascending order.
    Faster than sorting the whole array."
   [xs ^long k]
   (let [len (alength xs)]
-    (aselect xs (- len k))
-    (asort xs (- len k) len)
+    (aselect! xs (- len k))
+    (asort! xs (- len k) len)
     xs))
 
-(defn asort-min
+(defn asort-min!
   "Rearrange xs so that the first k elements are the min k in ascending order.
    Faster than sorting the whole array."
   [xs ^long k]
-  (aselect xs k)
-  (asort xs 0 k)
+  (aselect! xs k)
+  (asort! xs 0 k)
   xs)
 
-(defmacro apartition-indices
+(defmacro apartition-indices!
   "Like partition, but  mutate an array of indices into arr rather than
    modifying array directly."
   ([indices xs pivot]
      `(let [indices# ~indices]
-        (apartition-indices indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~pivot)))
+        (apartition-indices! indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~pivot)))
   ([indices xs start stop pivot]
      `(doto ~indices (Helpers/partitionIndices ~xs ~start ~stop ~pivot))))
 
-(defmacro aselect-indices
+(defmacro aselect-indices!
   ([indices xs k]
      `(let [indices# ~indices]
-        (aselect-indices indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~k)))
+        (aselect-indices! indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~k)))
   ([indices xs start stop k]
      `(doto ~indices (Helpers/selectIndices ~xs ~start ~stop ~k))))
 
-(defmacro asort-indices
+(defmacro asort-indices!
   ([xs]
-     `(let [xs# ~xs] (asort-indices xs# 0 (alength xs#))))
+     `(let [xs# ~xs] (asort-indices! xs# 0 (alength xs#))))
   ([indices xs]
      `(let [indices# ~indices]
-        (asort-indices indices# ~xs 0 (hiphip.IndexArrays/length indices#))))
+        (asort-indices! indices# ~xs 0 (hiphip.IndexArrays/length indices#))))
   ([xs start stop]
      `(doto (hiphip.IndexArrays/make ~start ~stop)
-        (asort-indices ~xs)))
+        (asort-indices! ~xs)))
   ([indices xs start stop]
      `(doto ~indices (Helpers/sortIndices ~xs ~start ~stop))))
 
@@ -289,7 +292,7 @@
    point at the remaining elements of xs, in no particular order.)"
   [xs ^long k]
   (doto (hiphip.IndexArrays/make 0 (alength xs))
-    (aselect-indices xs k)
+    (aselect-indices! xs k)
     (asort-indices xs 0 k)))
 
 (set! *warn-on-reflection* false)
