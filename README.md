@@ -200,7 +200,6 @@ You can run various portions of the test suite using leiningen test selectors.
 * `lein test :gen-test` runs generative tests, which are also fast but
    print a lot.
 
-
 * `lein test :bench` runs the benchmarks, which are very slow, and
   also a bit flaky currently (due to jitter in timing runs). You can
   look in `test/hiphip/array_test.clj` for the generic array
