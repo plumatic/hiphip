@@ -8,7 +8,7 @@ Leiningen dependency (Clojars): [prismatic/hiphip "0.1.0"]
 
 **This is an alpha release.  The API and organizational structure are subject to change.  Comments and contributions are much appreciated.**
 
-# Why?
+## Why?
 
 Instead of writing
 ```clojure
@@ -32,7 +32,7 @@ you can write the fast and simple
 (defn dot-product [ws xs] (hiphip.double/asum [x xs w ws] (* x w)))
 ```
 
-# About
+## About
 
 `hiphip` provides functions and macros that require little or no
 manual type hinting, and they use a binding semantics similar to those
@@ -46,7 +46,7 @@ information.
 Note: if you don't need the speed of primitive arrays, we encourage you
 to keep using Clojure's 'map' and 'reduce' -- they're more flexible.
 
-# Usage
+## Usage
 
 In your `project.clj`, add a dependency on 
 `[hiphip "unreleased-version"]`. Then require the namespace for your type, e.g.
@@ -55,7 +55,7 @@ In your `project.clj`, add a dependency on
 (require 'hiphip.double) 
 ```
 
-# Bindings
+## Bindings
 
 Bindings look like this:
 
@@ -118,8 +118,6 @@ Be aware that `:let` explicitly disallows shadowing the array
 bindings, e. g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
 `IllegalArgumentException`. Do also note that destructuring syntax is
 not supported.
-
-# API overview
 
 ## Iteration
 
@@ -187,9 +185,9 @@ Like `doseq`, but for arrays. Presumably used for side-effects.
   (.getResult java-thing))
 ```
 
-# Array functions
+## Array functions
 
-## Math
+### Math
 
 ```clojure
 ;; Sum of an array
@@ -202,7 +200,7 @@ Like `doseq`, but for arrays. Presumably used for side-effects.
 (dot-product xs ys)
 ```
 
-## Utility
+### Utility
 
 We provide pre-hinted versions of `aclone` et. al, in addition to a
 couple of other useful functions.
@@ -223,7 +221,7 @@ couple of other useful functions.
 (au/amake [idx 42] (rand idx)) 
 ```
 
-## Sorting and minimum/maximum
+### Sorting and minimum/maximum
 
 Note: These are mostly written in Java for pure speed, as it was
 difficult to match Java's performance for in-place sorting.
@@ -257,21 +255,21 @@ In addition, these functions come in versions either returning or
 modifying arrays of indices. Please refer to their docstrings for how
 to use them.
 
-# Caveats
+## Caveats
 
 New versions of Leiningen set JVM options that might prevent the JVM
 from doing some optimizations to your code. If your code seems
 unreasonbly slow, make sure to add `:jvm-opts ^:replace []` to your
 `project.clj`.
 
-# Supported Clojure versions
+## Supported Clojure versions
 
 hiphip is currently supported on Clojure 1.5.x.
 
-# Contributors
+## Contributors
 
 hiphip is the result of a collaboration between Prismatic, Emil Flakk, and Leon Barrett at Climate Corp.
 
-# License
+## License
 
 Copyright (C) 2013 Emil Flakk, Leon Barrett, and Prismatic.  Distributed under the Eclipse Public License, the same as Clojure.
