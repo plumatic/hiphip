@@ -54,17 +54,17 @@ both? Suppose you want do calculate the joint probability of an array
 of probabilities. You write this one-liner:
 
 ```clojure
-(au/aproduct xs)
+(dbl/aproduct xs)
 ```
 
-It would be nice to normalize the probabilities, so their sum equals
-one. The array is somewhat large, so you decide to do it in-place. You
-add this function:
+It would be nice to normalize the probabilities, such that their sum
+equals one. However, the array is somewhat large, so you decide to do
+it in-place. You add this function:
 
 ```clojure
 (defn normalize! [xs]
-  (let [sum (au/asum xs)]
-    (au/afill! [x xs] (/ x sum))))
+  (let [sum (dbl/asum xs)]
+    (dbl/afill! [x xs] (/ x sum))))
 ```
 
 But times are a-changing. You now wish to weight the probabilities in
@@ -73,7 +73,7 @@ new array, but instead overwriting the old xs array. No problem.
 
 ```clojure
 (defn weight-and-normalize! [xs ys]
-  (do (au/afill! [x xs y ys] (* x y))
+  (do (dbl/afill! [x xs y ys] (* x y))
       (normalize! xs)))
 ```
 
@@ -85,7 +85,7 @@ and transients.
 ```clojure
 (defn afrequencies [xs]
   (persistent!
-    (au/areduce [x xs] ret (transient {})
+    (dbl/areduce [x xs] ret (transient {})
       (assoc! ret x (inc (get ret x 0))))))
 ```
 
@@ -95,9 +95,9 @@ deviation.
 
 ```clojure
 (defn std-dev [xs]
-  (let [mean (au/amean xs)
-        square-diff (au/asum [x xs] (Math/pow (- x mean) 2))]
-    (/ square-diff (au/alength xs))))
+  (let [mean (dbl/amean xs)
+        square-diff-sum (dbl/asum [x xs] (Math/pow (- x mean) 2))]
+    (/ square-diff-sum (dbl/alength xs))))
 ```
 
 A simple statistics engine. Done.
@@ -109,17 +109,18 @@ HipHip provides typed namespaces (e.g. `hiphip.double` or
 provide:
 
 * A family of macros for efficiently iterating over array(s) with a
-  common binding syntax, including `amake`, `doarr`, `afill!`, and our own
-  versions of `amap` and `areduce`.
+  common binding syntax, including `doarr`, `afill!` (in-place), and
+  our own versions of `amap` and `areduce`.
 
 * Pre-hinted versions of Clojure built-ins like `alength` and `aset`,
   in addition to utility functions like `ainc` and `amake`.
 
-* Common math functions like `asum` and `aproduct` (both with optional
-  bindings), in addition to `amean` and `dot-product`.
+* Common math utils like `asum` and `aproduct` (both with optional
+  bindings), as well as `amean` and `dot-product`.
 
-* Sorting and max/min functions (written in Java for pure speed), with
-  additional varities that work on or return arrays of indices.
+* Sorting (in-place) and max/min functions (written in Java for pure
+  speed), with additional varities that work on or return arrays of
+  indices.
 
 For general looping needs, we provide `hiphip.array`. The API is more
 limited, but allows you to efficiently loop through arrays of
@@ -131,7 +132,7 @@ The looping macros use bindings to efficiently iterate through one or
 several arrays. They look like this:
 
 ```clojure
-(au/amap
+(dbl/amap
   [[i x] xs]
   <expression involving i, x>)
 ```
@@ -141,7 +142,7 @@ index-variable is optional, but there must be at least one array
 binding. You can have as many array bindings as you want. For example:
 
 ```clojure
-(au/amap
+(dbl/amap
   [x xs
    y ys 
    z zs...]
@@ -152,7 +153,7 @@ Iteration is parallel and not nested, ulike `for` and `doseq.
 Therefore, in
 
 ```clojure
-(au/amap
+(dbl/amap
   [[i1 x] xs
    [i2 y] ys
    [i3 z] zs ...]
@@ -167,7 +168,7 @@ You can specify a range for the operations. The default range is from
 0 to the length of the first array.
 
 ```clojure
-(au/afill!
+(dbl/afill!
   [[i x] xs
    :range [0 10]]
   i)
@@ -179,14 +180,14 @@ The bindings also support let, which works like a regular `let` in the
 inner loop, but casts to the array type (for speedy math), e.g.
 
 ```clojure
-(au/afill!
+(dbl/afill!
   [x xs
   :let [alpha 5 delta (- x 9)]]
   (* x alpha delta)) 
 ```
 
 Be aware that `:let` explicitly disallows shadowing the array
-bindings, e. g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
+bindings, e.g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
 `IllegalArgumentException`. Do also note that destructuring syntax is
 not supported.
 
