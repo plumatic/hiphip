@@ -57,13 +57,13 @@
   `hiphip.array` docstring). Note: The type of the accumulator will
   have the same semantics as those of a variable in a loop.
 
+   ;; Sum a really, really large array without overflow
+   (areduce [x xs] ret 0 
+     (+' ret x))
+
    ;; Frequencies of different elements
    (areduce [x xs] ret {} 
      (assoc ret x (inc (get ret x 0))))
-
-   ;; Unique elements in the array
-   (areduce [x xs] ret {} 
-     (conj ret x))
 
    ;; Return all non-composite numbers
    (areduce [x (asort xs)] ncomp []
@@ -218,6 +218,8 @@
      `(doto ~xs (Helpers/partition ~start ~stop ~pivot))))
 
 (defmacro aselect!
+  "Rearranges xs such that the smallest k elements come first,
+  followed by all greater elements."
   ([xs k] `(let [xs# ~xs] (aselect! xs# 0 (alength xs#) ~k)))
   ([xs start stop k]
      `(doto ~xs (Helpers/select ~start ~stop ~k))))
@@ -249,8 +251,7 @@
   xs)
 
 (defmacro apartition-indices!
-  "Like partition, but  mutate an array of indices into arr rather than
-   modifying array directly."
+  "Like apartition!, but mutate an array of indices instead."
   ([indices xs pivot]
      `(let [indices# ~indices]
         (apartition-indices! indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~pivot)))
@@ -258,6 +259,7 @@
      `(doto ~indices (Helpers/partitionIndices ~xs ~start ~stop ~pivot))))
 
 (defmacro aselect-indices!
+  "Like aselect!, but mutates an array of indices instead."
   ([indices xs k]
      `(let [indices# ~indices]
         (aselect-indices! indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~k)))
@@ -265,6 +267,7 @@
      `(doto ~indices (Helpers/selectIndices ~xs ~start ~stop ~k))))
 
 (defmacro asort-indices!
+  "Like asort!, but mutates an array of indices instead."
   ([xs]
      `(let [xs# ~xs] (asort-indices! xs# 0 (alength xs#))))
   ([indices xs]

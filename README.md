@@ -104,7 +104,7 @@ deviation. You also decide to add some other common utilities.
   (/ (covariance xs ys) (* std-dev1 std-dev2)))
 ```
 
-Why not add quantiles while you're on it?
+Why not add quantiles while you're at it?
 
 ```clojure
 (defn quantile* 
@@ -146,7 +146,13 @@ provide:
 
 For general looping needs, the library provides `hiphip.array`. The
 API is more limited, but allows you to efficiently loop through arrays
-of different types, provided they are type-hinted properly.
+of different types, provided they are type-hinted properly. For example:
+
+```clojure
+(defn fill-string-pointwise-product
+  [^{:tag "[Ljava.lang.String;"} os ^doubles xs ^longs ys]
+  (hiphip.array/afill! String [_ os x xs y ys] (str (* x y))))
+```
 
 ## Bindings
 
