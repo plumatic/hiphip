@@ -6,11 +6,13 @@ methods for fast math with primitive arrays.
 
 Leiningen dependency (Clojars): [prismatic/hiphip "0.1.0-SNAPSHOT"]
 
-**This is an alpha release.  The API and organizational structure are subject to change.  Comments and contributions are much appreciated.**
+**This is an alpha release. The API and organizational structure are
+subject to change. Comments and contributions are much appreciated.**
 
 ## Why?
 
 Instead of writing
+
 ```clojure
 ;; 1ms for 10000 doubles
 (defn dot-product [^doubles ws ^doubles xs]
@@ -18,6 +20,7 @@ Instead of writing
 ```
 
 or the faster but messier
+
 ```clojure
 ;; 8.5 us
 (defn dot-product [^doubles ws ^doubles xs]
@@ -27,6 +30,7 @@ or the faster but messier
 ```
 
 you can write the fast and simple
+
 ```clojure
 ;; 8.5 us
 (defn dot-product [ws xs] (hiphip.double/asum [x xs w ws] (* x w)))
@@ -36,17 +40,94 @@ you can write the fast and simple
 
 `hiphip` provides functions and macros that require little or no
 manual type hinting, and they use a binding semantics similar to those
-of `for` (see `Bindings` below). They are explained below.
+of `for`. The bindings are explained below, and in `hiphip.array`.
 
 The library currently supports arrays of floats, doubles, ints, and
 longs. You can extend to other types by providing type information to
 the functions in `hiphip.array`. Please see `DEVELOPERS.md` for more
 information.
 
+## Tour de force
+
+Usually numerical code in Clojure is either flexible or fast. Why not
+both? Suppose you want do calculate the joint probability of an array
+of probabilities. You write this one-liner:
+
+```clojure
+(au/aproduct xs)
+```
+
+It would be nice to normalize the probabilities, so their sum equals
+one. The array is somewhat large, so you decide to do it in-place. You
+add this function:
+
+```clojure
+(defn normalize! [xs]
+  (let [sum (au/asum xs)]
+    (au/afill! [x xs] (/ x sum))))
+```
+
+But times are a-changing. You now wish to weight the probabilities in
+xs (with weights contained in ys) as well. All this without creating a
+new array, but instead overwriting the old xs array. No problem.
+
+```clojure
+(defn weight-and-normalize! [xs ys]
+  (do (au/afill! [x xs y ys] (* x y))
+      (normalize! xs)))
+```
+
+Next, your boss tells you to write a function for finding the
+frequencies of the different probabilities in xs. It's used in some
+important services, and therefore needs to be fast. Simply use areduce
+and transients.
+
+```clojure
+(defn afrequencies [xs]
+  (persistent!
+    (au/areduce [x xs] ret (transient {})
+      (assoc! ret x (inc (get ret x 0))))))
+```
+
+At the end of the day, there's still a bit left to do. You realise
+it'd be darn nice have a function that calculates the standard
+deviation.
+
+```clojure
+(defn std-dev [xs]
+  (let [mean (au/amean xs)
+        square-diff (au/asum [x xs] (Math/pow (- x mean) 2))]
+    (/ square-diff (au/alength xs))))
+
+A simple statistics engine. Done.
+
+## API overview
+
+HipHip provides typed namespaces (e.g. `hiphip.double` or
+`hiphip.long`) for each supported array type. These namespaces
+provide:
+
+* A family of macros for efficiently iterating over array(s) with a
+  common binding syntax, including `amake`, `doarr`, `afill!`, and our own
+  versions of `amap` and `areduce`.
+
+* Pre-hinted versions of Clojure built-ins like `alength` and `aset`,
+  in addition to utility functions like `ainc` and `amake`.
+
+* Common math functions like `asum` and `aproduct` (both with optional
+  bindings), in addition to `amean` and `dot-product`.
+
+* Sorting and max/min functions (written in Java for pure speed), with
+  additional varities that work on or return arrays of indices.
+
+For general looping needs, we provide `hiphip.array`. The API is more
+limited, but allows you to efficiently loop through arrays of
+different types, provided they are type-hinted properly.
 
 ## Bindings
 
-Bindings look like this:
+The looping macros use bindings to efficiently iterate through one or
+several arrays. They look like this:
 
 ```clojure
 (au/amap
@@ -54,8 +135,8 @@ Bindings look like this:
   <expression involving i, x>)
 ```
 
-This binds `i` to the current index and `x` to the ith element of xs.
-The index-variable is optional, but there must be at least one array
+This binds i to the current index and x to the ith element of xs. The
+index-variable is optional, but there must be at least one array
 binding. You can have as many array bindings as you want. For example:
 
 ```clojure
@@ -108,181 +189,66 @@ bindings, e. g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
 `IllegalArgumentException`. Do also note that destructuring syntax is
 not supported.
 
-## Iteration
-
-These macros use the bindings explained above. For more examples,
-please see the docstrings.
-
-### areduce
-
-```clojure
-;; The maximum ratio entries of two vectors.
-(au/areduce [x xs y ys] result 1 (max result (/ x y)))
-```
-
-### asum
-
-```clojure
-;; dot product
-(au/asum [x xs y ys] (* x y))
-;; Compute a power series.
-(let [x 2.0]
-  (au/asum [[i a] as] (* a (Math/pow x i))))
-;; Sum the first 10 elements of the array.
-(au/asum [x xs :range [0 10]] x)
-```
-
-### aproduct
-
-```clojure
-;; Compute a joint probability.
-(let [scale 3.0]
-  (au/aproduct [x xs] (/ x scale)))
-```
-
-### amap
-
-Builds a new array from evaluating the expression at each step.
-
-```clojure
-;; Take the max of two arrays.
-(au/amap [x xs y ys] (max x y))
-```
-
-### afill!
-
-Like `amap`, but instead of building a new array, changes the *first*
-array in-place.
-
-```clojure
-;; Add a constant to an array.
-(au/afill! [x xs] (+ x 1.0))
-;; The += operation for two arrays.
-(au/afill! [x xs y ys] (+ x y))
-;; Insert marker values for each negative x.
-(au/afill! [x xs] (if (< 0 x) 999 x))
-```
-
-### doarr
-
-Like `doseq`, but for arrays. Presumably used for side-effects.
-
-```clojure
-;; Apply some java object's function.
-(let [java-thing (JavaThing.)]
-  (au/doarr [[i x] xs y ys] (.process java-thing i x y))
-  (.getResult java-thing))
-```
-
-## Array functions
-
-### Math
-
-```clojure
-;; Sum of an array
-(asum xs)
-;; Product (big pi) of an array
-(aproduct xs)
-;; Mean over an array
-(amean xs)
-;; Dot product of two arrays
-(dot-product xs ys)
-```
-
-### Utility
-
-We provide pre-hinted versions of `aclone` et. al, in addition to a
-couple of other useful functions.
-
-```clojure
-;; Length of an array.
-(au/alength xs)
-;; Clones an array.
-(au/aclone xs)
-;; Get the 2nd element.
-(au/aget xs 2)
-;; Set the 2nd element to 42.
-(au/aset xs 2 42)
-;; Increment the 2nd element by 57.
-(au/ainc 2 57)
-;; Make a new array with 10 000 elements generated with `rand`. Bind
-;; the index-variable to idx.
-(au/amake [idx 42] (rand idx)) 
-```
-
-### Sorting and minimum/maximum
-
-Note: These are mostly written in Java for pure speed, as it was
-difficult to match Java's performance for in-place sorting.
-
-```clojure
-;; Maximum over an array
-(au/amax xs)
-;; Minimum over an array
-(au/amin xs)
-;; Index of maximum
-(au/amax-index xs)
-;; Index of minimum
-(au/amin-index)
-
-;; Sort array in-place
-(au/asort! max)
-;; Sort xs using a pivot.
-(au/apartition! xs 5.4)
-;; Modifies xs s. t. the smallest 42 elements come first, followed by
-;; all greater elements. 
-(au/select! xs 42)
-;; Sort array in-place, so that the last 42 elements are the largest
-;; 42 elements in descending order 
-(au/asort-max! xs 42)
-;; Sort array in-place, so that the first 42 elements are the smallest
-;; 42 elements in descending order 
-(asort-min! xs 42)
-```
-
-In addition, these functions come in versions either returning or
-modifying arrays of indices. Please refer to their docstrings for how
-to use them.
-
 ## Running the tests
 
 You can run various portions of the test suite using leiningen test selectors.  
  
- * `lein test :fast` runs just the correctness tests, and should be fast.  
- * `lein test :gen-test` runs generative tests, which are also fast but print a lot.  
- * `lein test :bench` runs the benchmarks, which are very slow, and also a bit flaky currently (due to jitter in timing runs).  You can look in `test/hiphip/array_test.clj` for the generic array tests/benchmarks, and `test/hiphip/type_impl_test.clj` for the type-specific benchmarks, which include current expected performance numbers vs. Java for a number of common operations (plus ~10% to minimize flakiness).  Some things are much slower than we would like currently, but most operations on double arrays are within 0-50% of Java speed.
+* `lein test :fast` runs just the correctness tests, and should be
+   fast.
+ 
+* `lein test :gen-test` runs generative tests, which are also fast but
+   print a lot.
+
+
+* `lein test :bench` runs the benchmarks, which are very slow, and
+  also a bit flaky currently (due to jitter in timing runs). You can
+  look in `test/hiphip/array_test.clj` for the generic array
+  tests/benchmarks, and `test/hiphip/type_impl_test.clj` for the
+  type-specific benchmarks, which include current expected performance
+  numbers vs. Java for a number of common operations (plus ~10% to
+  minimize flakiness). Some things are much slower than we would like
+  currently, but most operations on double arrays are within 0-50% of
+  Java speed.
 
 ## Known issues
 
-There are still a few performance issues we're working on.  For instance, math on index variables and doubles is several times slower than Java:
+There are still a few performance issues we're working on. For
+instance, math on index variables and doubles is several times slower
+than Java:
 
 ```clojure
 (hiphip/afill! [[i x] xs] (* x i))
 ```
-Some operations on non-double primitive arrays are also slower (up to about 
-three times as slow as Java) -- check out the benchmark suite in `test/hiphip/type_impl_test.clj` for the most up-to-date results. We welcome contributions of performance improvements, or just benchmarks where 
-HipHip is slow, so we can all work together towards making 
-it easy to write maximally performant math in Clojure. 
+
+Some operations on non-double primitive arrays are also slower (up to
+about three times as slow as Java) -- check out the benchmark suite in
+`test/hiphip/type_impl_test.clj` for the most up-to-date results. We
+welcome contributions of performance improvements, or just benchmarks
+where HipHip is slow, so we can all work together towards making it
+easy to write maximally performant math in Clojure.
 
 ## Performance: know your options
 
-Achieving maximal performance for some HipHip operations required a lot of 
-fiddling, and some of the most important things we found involved options to Clojure
-and the the JVM. 
+Achieving maximal performance for some HipHip operations required a
+lot of fiddling, and some of the most important things we found
+involved options to Clojure and the the JVM.
 
- * [Leiningen](http://leiningen.org/) is a great build tool.  To help speed up
- slow start-up times (a major concern of users), its developers chose to inject
- options that [disable some advanced optimizations](https://github.com/technomancy/leiningen/wiki/Faster#tiered-compilation) into your project's JVM (thanks to Stuart Sierra and others
- on the Clojure mailing list for pointing this out).  If you want your array
- code to go fast under Leiningen, you probably want to add the
- following to your `project.clj`:
+ * [Leiningen](http://leiningen.org/) is a great build tool. To help
+   speed up slow start-up times (a major concern of users), its
+   developers chose to inject options that [disable some advanced
+   optimizations](https://github.com/technomancy/leiningen/wiki/Faster#tiered-compilation)
+   into your project's JVM (thanks to Stuart Sierra and others on the
+   Clojure mailing list for pointing this out). If you want your array
+   code to go fast under Leiningen, you probably want to add the
+   following to your `project.clj`:
 
 <script src="https://gist.github.com/w01fe/5964036.js"></script>
 
- * Clojure provides an `*unchecked-math*` compiler option to speed up primitive 
- math by omitting overflow checks.  We've found mixed results with this option --
- it almost always helps, but in some cases (especially with double array operations) 
- it actually hurts performance.
+ * Clojure provides an `*unchecked-math*` compiler option to speed up
+   primitive math by omitting overflow checks. We've found mixed
+   results with this option -- it almost always helps, but in some
+   cases (especially with double array operations) it actually hurts
+   performance.
 
 ## Supported Clojure versions
 
