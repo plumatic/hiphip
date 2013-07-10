@@ -1,10 +1,10 @@
 hiphip (array)!
-===========
+===============
 
 `hiphip` is an array library for Clojure, whicih provides elegant
 methods for fast math with primitive arrays.
 
-Leiningen dependency (Clojars): [prismatic/hiphip "0.1.0-SNAPSHOT"]
+Leiningen dependency (Clojars): `[prismatic/hiphip "0.1.0-SNAPSHOT"]`
 
 **This is an alpha release. The API and organizational structure are
 subject to change. Comments and contributions are much appreciated.**
@@ -38,9 +38,9 @@ Why not have both?
 
 ## About
 
-HipHip provides functions and macros that require little or no
-manual type hinting, and they use a binding semantics similar to those
-of `for`. The bindings are explained below, and in `hiphip.array`.
+HipHip provides functions and macros that require little or no manual
+type hinting, with binding semantics similar to those of `for`. The
+bindings are explained below, and in `hiphip.array`.
 
 The library currently supports arrays of floats, doubles, ints, and
 longs. You can extend to other types by providing type information to
@@ -58,9 +58,10 @@ of probabilities. You write this one-liner:
 ```
 
 But times, they are a-changing. You now wish to weight the
-probabilities in xs (with weights contained in ys) as well. The result
-should be normalized, so that the sum of the probabilities equals one.
-The array is quite large, so you decide to do everything in-place.
+probabilities in `xs` (with weights contained in `ys`) as well. The
+result should be normalized, so that the sum of the probabilities
+equals one. The array is quite large, so you decide to do everything
+in-place.
 
 ```clojure
 (defn normalize! [xs]
@@ -137,8 +138,8 @@ provide:
   for dealing with arrays, e.g. `alength` and `aset`. Also new
   utilities like `ainc` and `amake`.
 
-* Common math operations like `asum` and `aproduct` (both with
-  optional bindings), as well as `amean` and `dot-product`.
+* Common math operations like `amean` and `dot-product`. Also `asum`
+  and `aproduct`, which support iterating with bindings as well.
 
 * Sorting (in-place) and max/min functions (written in Java for pure
   speed) like `amax` and `apartition`, with additional varities that
@@ -177,7 +178,7 @@ binding. You can have as many array bindings as you want. For example:
   <expression involving x, y>)
 ```
 
-Iteration is parallel and not nested, ulike `for` and `doseq`.
+Iteration is parallel and not nested, unlike `for` and `doseq`.
 Therefore, in
 
 ```clojure
@@ -205,7 +206,8 @@ You can specify a range for the operations. The default range is from
 ### Let
 
 The bindings also support let, which works like a regular `let` in the
-inner loop, but casts to the array type (for speedy math), e.g.
+inner loop. In the typed namespaces, it casts to the array type (for
+speedy math), e.g.
 
 ```clojure
 (dbl/afill!
@@ -216,8 +218,8 @@ inner loop, but casts to the array type (for speedy math), e.g.
 
 Be aware that `:let` explicitly disallows shadowing the array
 bindings, e.g. `(afill! [myvar xs :let [myvar 5]] myvar)` throws an
-`IllegalArgumentException`. Do also note that destructuring syntax is
-not supported.
+`IllegalArgumentException`. This is to avoid unhappy accidents. Do
+also note that destructuring syntax is not supported.
 
 ## Running the tests
 
