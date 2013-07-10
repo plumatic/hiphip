@@ -4,7 +4,7 @@ hiphip (array)!
 `hiphip` is an array library for Clojure, whicih provides elegant
 methods for fast math with primitive arrays.
 
-Leiningen dependency (Clojars): [prismatic/hiphip "0.1.0"]
+Leiningen dependency (Clojars): [prismatic/hiphip "0.1.0-SNAPSHOT"]
 
 **This is an alpha release.  The API and organizational structure are subject to change.  Comments and contributions are much appreciated.**
 
@@ -43,17 +43,6 @@ longs. You can extend to other types by providing type information to
 the functions in `hiphip.array`. Please see `DEVELOPERS.md` for more
 information.
 
-Note: if you don't need the speed of primitive arrays, we encourage you
-to keep using Clojure's 'map' and 'reduce' -- they're more flexible.
-
-## Usage
-
-In your `project.clj`, add a dependency on 
-`[hiphip "unreleased-version"]`. Then require the namespace for your type, e.g.
-
-```clojure 
-(require 'hiphip.double) 
-```
 
 ## Bindings
 
@@ -255,12 +244,45 @@ In addition, these functions come in versions either returning or
 modifying arrays of indices. Please refer to their docstrings for how
 to use them.
 
-## Caveats
+## Running the tests
 
-New versions of Leiningen set JVM options that might prevent the JVM
-from doing some optimizations to your code. If your code seems
-unreasonbly slow, make sure to add `:jvm-opts ^:replace []` to your
-`project.clj`.
+You can run various portions of the test suite using leiningen test selectors.  
+ 
+ * `lein test :fast` runs just the correctness tests, and should be fast.  
+ * `lein test :gen-test` runs generative tests, which are also fast but print a lot.  
+ * `lein test :bench` runs the benchmarks, which are very slow, and also a bit flaky currently (due to jitter in timing runs).  You can look in `test/hiphip/array_test.clj` for the generic array tests/benchmarks, and `test/hiphip/type_impl_test.clj` for the type-specific benchmarks, which include current expected performance numbers vs. Java for a number of common operations (plus ~10% to minimize flakiness).  Some things are much slower than we would like currently, but most operations on double arrays are within 0-50% of Java speed.
+
+## Known issues
+
+There are still a few performance issues we're working on.  For instance, math on index variables and doubles is several times slower than Java:
+
+```clojure
+(hiphip/afill! [[i x] xs] (* x i))
+```
+Some operations on non-double primitive arrays are also slower (up to about 
+three times as slow as Java) -- check out the benchmark suite in `test/hiphip/type_impl_test.clj` for the most up-to-date results. We welcome contributions of performance improvements, or just benchmarks where 
+HipHip is slow, so we can all work together towards making 
+it easy to write maximally performant math in Clojure. 
+
+## Performance: know your options
+
+Achieving maximal performance for some HipHip operations required a lot of 
+fiddling, and some of the most important things we found involved options to Clojure
+and the the JVM. 
+
+ * [Leiningen](http://leiningen.org/) is a great build tool.  To help speed up
+ slow start-up times (a major concern of users), its developers chose to inject
+ options that [disable some advanced optimizations](https://github.com/technomancy/leiningen/wiki/Faster#tiered-compilation) into your project's JVM (thanks to Stuart Sierra and others
+ on the Clojure mailing list for pointing this out).  If you want your array
+ code to go fast under Leiningen, you probably want to add the
+ following to your `project.clj`:
+
+<script src="https://gist.github.com/w01fe/5964036.js"></script>
+
+ * Clojure provides an `*unchecked-math*` compiler option to speed up primitive 
+ math by omitting overflow checks.  We've found mixed results with this option --
+ it almost always helps, but in some cases (especially with double array operations) 
+ it actually hurts performance.
 
 ## Supported Clojure versions
 
