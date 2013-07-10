@@ -48,19 +48,20 @@
         base-result (gensym "base-result")
         test-expr (gensym "test-expr")]
     `(defn ~name ~args
-       (let [{~base-args :args ~base-result :result} (expr-results ~args ~expr)]
-         (if-let [e# (:exception ~base-result)]
-           (test/is (not e#) "Baseline expr threw an exception")
-           (do ~@(for [test-expr exprs]
-                   `(let [{expr# :expr args# :args result# :result} (expr-results ~args ~test-expr)]
-                      (test/testing (str "in expr " expr#)
-                        (if-let [e# (:exception result#)]
-                          (test/is (not e#) "expr threw an exception")
-                          (do (doseq [[i# base-arg# arg#] (map vector (range) ~base-args args#)]
-                                (test/testing (format "%sth inputs are equal after the op" i#)
-                                  (test/is (= (=-able base-arg#) (=-able arg#)))))
-                              (test/testing "return values are equivalent"
-                                (test/is (= (=-able ~base-result) (=-able result#)))))))))))))))
+       (test/testing ~(clojure.core/name name)
+         (let [{~base-args :args ~base-result :result} (expr-results ~args ~expr)]
+           (if-let [e# (:exception ~base-result)]
+             (test/is (not e#) "Baseline expr threw an exception")
+             (do ~@(for [test-expr exprs]
+                     `(let [{expr# :expr args# :args result# :result} (expr-results ~args ~test-expr)]
+                        (test/testing (str "in expr " expr#)
+                          (if-let [e# (:exception result#)]
+                            (test/is (not e#) "expr threw an exception")
+                            (do (doseq [[i# base-arg# arg#] (map vector (range) ~base-args args#)]
+                                  (test/testing (format "%sth inputs are equal after the op" i#)
+                                    (test/is (= (=-able base-arg#) (=-able arg#)))))
+                                (test/testing "return values are equivalent"
+                                  (test/is (= (=-able ~base-result) (=-able result#))))))))))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -108,18 +109,19 @@
   [name args expr & slowness-and-exprs]
   (let []
     `(defn ~name ~args
-       (binding [criterium/*final-gc-problem-threshold* 0.4]
-         (let [raw-results# [~@(for [s-and-e (cons [{} expr] (partition 2 slowness-and-exprs))]
-                                 `(bench-results ~args ~s-and-e))]
-               results# (keep (fn [result#]
-                                (if-let [e# (:exception result#)]
-                                  (do (test/is (not e#) (format "expr %s threw an exception"
-                                                                (:expr result#)))
-                                      nil)
-                                  result#))
-                              raw-results#)]
-           (print-benchmark-results results#)
-           (test-benchmark-results results#))))))
+       (test/testing ~(clojure.core/name name)
+         (binding [criterium/*final-gc-problem-threshold* 0.4]
+           (let [raw-results# [~@(for [s-and-e (cons [{} expr] (partition 2 slowness-and-exprs))]
+                                   `(bench-results ~args ~s-and-e))]
+                 results# (keep (fn [result#]
+                                  (if-let [e# (:exception result#)]
+                                    (do (test/is (not e#) (format "expr %s threw an exception"
+                                                                  (:expr result#)))
+                                        nil)
+                                    result#))
+                                raw-results#)]
+             (print-benchmark-results results#)
+             (test-benchmark-results results#)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

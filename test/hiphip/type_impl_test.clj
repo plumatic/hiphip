@@ -9,9 +9,6 @@
 
 (set! *warn-on-reflection* true)
 
-;; TODO: some versions with and without unchecked math -- it actually makes many things slower.
-;; (set! *unchecked-math* true)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Tests for selection and partitioning
 
@@ -169,8 +166,8 @@
   1.1 (hiphip/alength xs)
   ;; failure cases for testing the tests
   ;; 1.2 (inc (hiphip/alength xs))
-  ;; 1.2 (do (aset xs 0 100.0) (hiphip/alength xs))
-  ;; 0.3 (do (aset ys 0 101.0) (hiphip/alength xs))
+  ;; 1.2 (do (hiphip/aset xs 0 100) (hiphip/alength xs))
+  ;; 0.3 (do (hiphip/aset ys 0 101) (hiphip/alength xs))
   )
 
 (defbenchmarktype aget
@@ -197,23 +194,23 @@
 (defmacro hinted-clojure-areduce [arr-sym idx-sym ret-sym init final]
   `(areduce ~arr-sym ~idx-sym ~ret-sym ~(impl/value-cast +type+ init) ~final))
 
-(defn clojure-areduce-dot-product [^doubles xs ^doubles ys]
-  (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i)))))
-
-(set! *unchecked-math* true)
-
-(defn clojure-areduce-dot-product-unchecked [^doubles xs ^doubles ys]
-  (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i)))))
-
-(set! *unchecked-math* false)
-
 (defbenchmarktype areduce-and-dot-product
   (Baseline/dot_product xs ys)
   1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
   1.1 (hiphip/dot-product xs ys)
-  nil (clojure-areduce-dot-product xs ys)
-  nil (clojure-areduce-dot-product-unchecked xs ys)
+  nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
   nil (reduce + (map * xs ys)))
+
+(set! *unchecked-math* true)
+
+(defbenchmarktype areduce-and-dot-product-unchecked
+  (Baseline/dot_product xs ys)
+  1.1 (hinted-hiphip-areduce [x xs y ys] ret 0 (+ ret (* x y)))
+  1.1 (hiphip/dot-product xs ys)
+  nil (hinted-clojure-areduce xs i ret 0 (+ ret (* (aget xs i) (aget ys i))))
+  nil (reduce + (map * xs ys)))
+
+(set! *unchecked-math* false)
 
 (defbenchmarktype doarr-and-afill!
   (Baseline/multiply_in_place_pointwise xs ys)
@@ -311,6 +308,12 @@
       (testing (name n)
         (t (gen-array size 0) (gen-array size 1))))))
 
+(deftest hiphip-type-test
+  (all-tests 10000))
+
+(deftest ^:bench hiphip-type-bench
+  (all-benches 10000))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Test sorting ops, with no equality and differnet data
 
@@ -333,7 +336,7 @@
   1.5 (hiphip/amax-indices xs (quot (alength xs) 10))
   0.7 (hiphip/amax-indices xs 5))
 
-(defn run-sort-ops []
+(deftest ^:bench sort-ops-benc
   (let [r (java.util.Random. 1)]
     (sort-ops (double-array (repeatedly 10000 #(.nextInt r 1000000))) (double-array 10000))))
 

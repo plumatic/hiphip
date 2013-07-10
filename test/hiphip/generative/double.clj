@@ -9,4 +9,4 @@
 (def new-array double-array)
 (defn is-type? [n] (instance? Double n))
 
-(load "common")
+(load "type_impl_gen")
