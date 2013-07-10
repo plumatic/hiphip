@@ -2,7 +2,7 @@ hiphip (array)!
 ===========
 
 `hiphip` is an array macro library for Clojure. It offers more elegant
-ways for doing fast math with primitive arrays, both in-place and
+ways for doing fast math with primitive arrays, be it in-place and
 functional.
 
 # Why?
@@ -37,7 +37,8 @@ of `for` (see `Bindings` below). They are explained below.
 
 The library currently supports arrays of floats, doubles, ints, and
 longs. You can extend to other types by providing type information to
-the functions in `hiphip.array`.
+the functions in `hiphip.array`. Please see `DEVELOPERS.md` for more
+information.
 
 Note: if you don't need the speed of primitive arrays, we encourage you
 to keep using Clojure's 'map' and 'reduce' -- they're more flexible.
@@ -119,7 +120,8 @@ not supported.
 
 ## Iteration (with bindings)
 
-These macros use the bindings explained above.
+These macros use the bindings explained above. For more examples,
+please see the docstrings.
 
 ### areduce
 
@@ -182,9 +184,9 @@ Like `doseq`, but for arrays. Presumably used for side-effects.
   (.getResult java-thing))
 ```
 
-TODO: Refactor this.
-
 ## Array functions
+
+TODO: Refactor this. Maybe partition into math, sorting, utility?
 
 There are also a few common utility functions available:
 

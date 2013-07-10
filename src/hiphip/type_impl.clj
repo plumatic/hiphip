@@ -36,7 +36,6 @@
   `(let [idx# ~idx]
      (aset ~xs idx# (+ ~(impl/value-cast +type+ val) (aget ~xs idx#)))))
 
-
 ;; ----------------------------------------------
 ;; Type hinted versions of hiphip.array functions
 ;; ----------------------------------------------
@@ -100,8 +99,8 @@
    ;; Square roots array
    (amap [x xs] (Math/sqrt x))
 
-   ;; New array with only odd values
-   (amap [x xs] (if (even? x) (inc 0) x))
+   ;; Take the max of two arrays.
+   (amap [x xs y ys] (max x y))
 
    ;; Create an array from the first ten elements, all incremented
    (amap [x xs :range [0 10]] (inc x)) 
@@ -125,7 +124,6 @@
   "
   [bindings form]
   `(array/afill! ~+type+ ~(impl/hint-bindings +type+ bindings) ~form))
-
 
 ;; -------------------------------------------------------
 ;; More 'mathy' functions for the main numeric array types

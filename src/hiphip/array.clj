@@ -1,10 +1,10 @@
 (ns hiphip.array
-  "Macros for iteration on generic arrays.  This namespace provides
+  "Macros for iteration on generic arrays. This namespace provides
    versions that can iterate over arbitrary mixtures of array types,
    but the arrays must be appropriately type hinted for good
-   performance.  The specific array type namespaces (double/float/...)
-   offer versions of these macros that do not require type hints, but
-   only work on arrays of the corresponding type.
+   performance. The specific array type namespaces (e.g.
+   `hiphip.double`) offer versions of these macros that do not require
+   type hints, but only work on arrays of the corresponding type.
 
    All these macros use binding forms that look like:
 

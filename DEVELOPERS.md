@@ -1,10 +1,10 @@
 # Developer notes
 
 This is a short introduction to the library's inner workings. The
-primary audience is people wanting to extend the API or provide
-patches.
+primary audience is people wanting to extend the API for themselves or
+provide patches.
 
-# The short gist
+## The short gist
 
 `hiphip` provides primed functions and macros, that is, code with the
 necessary type hints to avoid reflection when dealing with primitive
@@ -16,11 +16,10 @@ type info needed set up the code. All bindings are parsed using
 `parse-bindings` in `hiphip.core`, which returns a map of the
 necessary bindings and vars.
 
-The type type namespaces (e.g. `hiphip.double`) contain `type-info`, a
-hashmap with the necessary tags and functions to set up
-`hiphip.array`. This is done by loading `type_impl.clj`, which
-extracts the necessary type and "primes" the functions contained in
-`hiphip.array`.
+Most of our implementation code is contained in `type_impl.clj`. The
+type namespaces (e.g. `hiphip.double`) contain all of the necessary
+type info, and load `type_impl.clj`, which then extracts the necessary
+type info and "primes" the API provided by `hiphip.array`.
 
 A benchmarking suite (runnable by calling `lein test`) is provided to
 make sure performance demands are met. If not, the tests fail. This is
@@ -31,16 +30,31 @@ be within ~1.2 of Java. (This is unfortunately not always the case).
 
 ## Extending hiphip
 
-If you're not looking to contribute your implementation upstream, the
-easiest solution is to download `type_impl.clj` and adding your type
-information on the top. These type information needs to contain th
+You should start with the macros provided in `hiphip.array` and build
+from there. Provide the necessary type information to set up your
+functions and macros. If you need your code to be shared between
+different types, feel free to copy our approach by loading a
+`type_impl.clj` in a type namespace.
 
 ## Contributing to hiphip
 
 All contributors should run `lein test` before submitting their pull
-requests. Regressions are not acceptable at this point in time.
+requests. Performance regressions are not acceptable at this point in
+time.
 
-Implementations for new arrays should use the functions in
+Implementations for new arrays should use the API provided by
 `hiphip.array` unless unfeasible. New implementations should also be
 added to the benchmark suit (with initial relative slowness) to track
-their relative performance.
+their relative performance over time.
+
+## Common caveats during development
+
+* Setting `*unchecked-math*` to `true` is might either improve and
+  worsen performance, but never reliably. This is normal, or rather,
+  we don't really know what is going on.
+
+* Beware of overflow when writing your tests. For large arrays, some
+  types just can't handle the heat (or rather, large numbers).
+
+* Make sure you have `:jvm-opts ^:replace []` in your `project.clj`.
+  Otherwise benchmarks might seem to be regressing a lot.
