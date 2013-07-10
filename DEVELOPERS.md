@@ -10,11 +10,11 @@ provide patches.
 necessary type hints to avoid reflection when dealing with primitive
 arrays.
 
-The main code is in `hiphip.array`. These implementations accept the
-arguments of their "primed" counterparts (e.g. `amap`), in addition to
-type info needed set up the code. All bindings are parsed using
-`parse-bindings` in `hiphip.core`, which returns a map of the
-necessary bindings and vars.
+The core macros are found in `hiphip.array`. They accept the arguments
+of their "primed" counterparts (e.g. `amap`), in addition to type info
+needed set up the code. All bindings are parsed using `parse-bindings`
+in `hiphip.core`, which returns a map of the necessary value bindings
+and vars.
 
 Most of our implementation code is contained in `type_impl.clj`. The
 type namespaces (e.g. `hiphip.double`) contain all of the necessary
@@ -33,14 +33,14 @@ be within ~1.2 of Java. (This is unfortunately not always the case).
 You should start with the macros provided in `hiphip.array` and build
 from there. Provide the necessary type information to set up your
 functions and macros. If you need your code to be shared between
-different types, feel free to copy our approach by loading a
+different implementations, feel free to copy our approach by loading a
 `type_impl.clj` in a type namespace.
 
 ## Contributing to hiphip
 
-All contributors should run `lein test` before submitting their pull
-requests. Performance regressions are not acceptable at this point in
-time.
+All contributors should run `lein test :bench` and `lein test :fast`
+before submitting their pull requests. Performance regressions are not
+acceptable at this point in time.
 
 Implementations for new arrays should use the API provided by
 `hiphip.array` unless unfeasible. New implementations should also be
@@ -49,9 +49,9 @@ their relative performance over time.
 
 ## Common caveats during development
 
-* Setting `*unchecked-math*` to `true` is might either improve and
-  worsen performance, but never reliably. This is normal, or rather,
-  we don't really know what is going on.
+* Setting `*unchecked-math*` to `true` might either improve and worsen
+  performance, but never reliably so. This is normal, or rather, we
+  don't really know what is going on.
 
 * Beware of overflow when writing your tests. For large arrays, some
   types just can't handle the heat (or rather, large numbers).

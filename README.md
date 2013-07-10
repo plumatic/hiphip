@@ -57,10 +57,10 @@ of probabilities. You write this one-liner:
 (dbl/aproduct xs)
 ```
 
-But times are a-changing. You now wish to weight the probabilities in
-xs (with weights contained in ys) as well. The result should be
-normalised, so that the sum of the probabilities equals one. The array
-is quite large, so you decide to do everything in-place.
+But times, they are a-changing. You now wish to weight the
+probabilities in xs (with weights contained in ys) as well. The result
+should be normalized, so that the sum of the probabilities equals one.
+The array is quite large, so you decide to do everything in-place.
 
 ```clojure
 (defn normalize! [xs]
@@ -117,7 +117,7 @@ deviation. You also decide to add some other common utilities.
     (quantile* (dbl/asort! new) phi)))
 ```
 
-A simple and fast data inspection engine. Done.
+A simple and fast data analysis engine. Done.
 
 ## API overview
 
@@ -139,9 +139,9 @@ provide:
   speed), with additional varities that work on or return arrays of
   indices.
 
-For general looping needs, we provide `hiphip.array`. The API is more
-limited, but allows you to efficiently loop through arrays of
-different types, provided they are type-hinted properly.
+For general looping needs, the library provides `hiphip.array`. The
+API is more limited, but allows you to efficiently loop through arrays
+of different types, provided they are type-hinted properly.
 
 ## Bindings
 
@@ -154,7 +154,7 @@ several arrays. They look like this:
   <expression involving i, x>)
 ```
 
-This binds i to the current index and x to the ith element of xs. The
+This binds `i` to the current index and `x` to the ith element of `xs`. The
 index-variable is optional, but there must be at least one array
 binding. You can have as many array bindings as you want. For example:
 
