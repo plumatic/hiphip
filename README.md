@@ -129,15 +129,16 @@ provide:
   common binding syntax, including `doarr`, `afill!` (in-place), and
   our own versions of `amap` and `areduce`.
 
-* Pre-hinted versions of Clojure built-ins like `alength` and `aset`,
-  in addition to utility functions like `ainc` and `amake`.
+* Drop-in, pre-hinted versions of most of Clojure's existing utilities
+  for dealing with arrays, e.g. `alength` and `aset`. Additionaly new
+  ones like functions like `ainc` and `amake`.
 
 * Common math utils like `asum` and `aproduct` (both with optional
   bindings), as well as `amean` and `dot-product`.
 
 * Sorting (in-place) and max/min functions (written in Java for pure
-  speed), with additional varities that work on or return arrays of
-  indices.
+  speed) like `amax` and `apartition`, with additional varities that
+  work on or return arrays of indices.
 
 For general looping needs, the library provides `hiphip.array`. The
 API is more limited, but allows you to efficiently loop through arrays
