@@ -57,21 +57,16 @@ of probabilities. You write this one-liner:
 (dbl/aproduct xs)
 ```
 
-It would be nice to normalize the probabilities, such that their sum
-equals one. However, the array is somewhat large, so you decide to do
-it in-place. You add this function:
+But times are a-changing. You now wish to weight the probabilities in
+xs (with weights contained in ys) as well. The result should be
+normalised, so that the sum of the probabilities equals one. The array
+is quite large, so you decide to do everything in-place.
 
 ```clojure
 (defn normalize! [xs]
   (let [sum (dbl/asum xs)]
     (dbl/afill! [x xs] (/ x sum))))
-```
 
-But times are a-changing. You now wish to weight the probabilities in
-xs (with weights contained in ys) as well. All this without creating a
-new array, but instead overwriting the old xs array. No problem.
-
-```clojure
 (defn weight-and-normalize! [xs ys]
   (do (dbl/afill! [x xs y ys] (* x y))
       (normalize! xs)))
@@ -89,18 +84,40 @@ and transients.
       (assoc! ret x (inc (get ret x 0))))))
 ```
 
-At the end of the day, there's still a bit left to do. You realise
+At the end of the day, there's still a bit of work to do. You realise
 it'd be darn nice have a function that calculates the standard
-deviation.
+deviation. You also decide to add some other common utilities.
 
 ```clojure
 (defn std-dev [xs]
   (let [mean (dbl/amean xs)
         square-diff-sum (dbl/asum [x xs] (Math/pow (- x mean) 2))]
     (/ square-diff-sum (dbl/alength xs))))
+
+(defn covariance [xs ys]
+  (let [ys-mean (dbl/amean ys)
+        xs-mean (dbl/amean xs)
+        diff-sum (dbl/asum [x xs y ys] (* (- x xs-mean) (- y ys-mean)))]
+    (/ diff-sum (dec (dbl/alength xs)))))
+
+(defn correlation [xs ys std-dev1 std-dev2]
+  (/ (covariance xs ys) (* std-dev1 std-dev2)))
+
+(defn quantile* 
+  "Given a sorted array, returns an element s. t. phi percent of the
+  elements are less than this element"
+  [xs phi]
+  (let [cutoff (int (* (dbl/alength xs) phi))]
+    (dbl/aget xs cutoff)))
+
+(defn quantile 
+  "Like quantile*, but doesn't require a sorted array."
+  [xs phi]
+  (let [new (dbl/aclone xs)]
+    (quantile* (dbl/asort! new) phi)))
 ```
 
-A simple statistics engine. Done.
+A simple and fast data inspection engine. Done.
 
 ## API overview
 
