@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Generate the type-specific Java Baseline and Helpers classes for float/int/long 
+# from the canonical double versions.
+
 cd `dirname $0`
 for out in float int long
 do

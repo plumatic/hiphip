@@ -327,17 +327,18 @@
 
 (deftestfasttype sort-ops
   (java.util.Arrays/sort xs)
-  0.15 (hiphip/aselect xs (quot (alength xs) 2))
-  0.3 (hiphip/aselect xs (quot (alength xs) 10))
-  0.3 (hiphip/aselect xs 1)
+  0.1 (hiphip/aselect xs (quot (alength xs) 2))
+  0.2 (hiphip/aselect xs (quot (alength xs) 10))
+  0.2 (hiphip/aselect xs 1)
   0.03 (hiphip/amax xs)
-  0.4 (hiphip/asort-max xs (quot (alength xs) 10))
+  0.3 (hiphip/asort-max xs (quot (alength xs) 10))
   6.0 (hiphip/asort-indices xs)
-  1.5 (hiphip/amax-indices xs (quot (alength xs) 10))
-  0.7 (hiphip/amax-indices xs 5))
+  1.0 (hiphip/amax-indices xs (quot (alength xs) 10))
+  0.6 (hiphip/amax-indices xs 5))
 
-(deftest ^:bench sort-ops-benc
-  (let [r (java.util.Random. 1)]
-    (sort-ops (double-array (repeatedly 10000 #(.nextInt r 1000000))) (double-array 10000))))
+(deftest ^:bench sort-ops-bench
+  (let [r (java.util.Random. 1)
+        xs (hiphip/amake [_ 10000] (.nextInt r 1000000))]
+    (sort-ops xs xs)))
 
 (set! *warn-on-reflection* false)
