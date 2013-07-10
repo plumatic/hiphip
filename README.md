@@ -233,22 +233,22 @@ Achieving maximal performance for some HipHip operations required a
 lot of fiddling, and some of the most important things we found
 involved options to Clojure and the the JVM.
 
- * [Leiningen](http://leiningen.org/) is a great build tool. To help
-   speed up slow start-up times (a major concern of users), its
-   developers chose to inject options that [disable some advanced
-   optimizations](https://github.com/technomancy/leiningen/wiki/Faster#tiered-compilation)
-   into your project's JVM (thanks to Stuart Sierra and others on the
-   Clojure mailing list for pointing this out). If you want your array
-   code to go fast under Leiningen, you probably want to add the
-   following to your `project.clj`:
+* [Leiningen](http://leiningen.org/) is a great build tool. To help
+  speed up slow start-up times (a major concern of users), its
+  developers chose to inject options that [disable some advanced
+  optimizations](https://github.com/technomancy/leiningen/wiki/Faster#tiered-compilation)
+  into your project's JVM (thanks to Stuart Sierra and others on the
+  Clojure mailing list for pointing this out). If you want your array
+  code to go fast under Leiningen, you probably want to add the
+  following to your `project.clj`:
 
 <script src="https://gist.github.com/w01fe/5964036.js"></script>
 
- * Clojure provides an `*unchecked-math*` compiler option to speed up
-   primitive math by omitting overflow checks. We've found mixed
-   results with this option -- it almost always helps, but in some
-   cases (especially with double array operations) it actually hurts
-   performance.
+* Clojure provides an `*unchecked-math*` compiler option to speed up
+  primitive math by omitting overflow checks. We've found mixed
+  results with this option -- it almost always helps, but in some
+  cases (especially with double array operations) it actually hurts
+  performance.
 
 ## Supported Clojure versions
 
