@@ -274,7 +274,10 @@ involved options to Clojure and the the JVM.
   code to go fast under Leiningen, you probably want to add the
   following to your `project.clj`:
 
-<script src="https://gist.github.com/w01fe/5964036.js"></script>
+```clojure
+;; Clear Leiningen's default jvm-opts.
+:jvm-opts ^:replace [] 
+```
 
 * Clojure provides an `*unchecked-math*` compiler option to speed up
   primitive math by omitting overflow checks. We've found mixed
