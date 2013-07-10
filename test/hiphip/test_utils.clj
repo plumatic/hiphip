@@ -50,12 +50,12 @@
     `(defn ~name ~args
        (test/testing ~(clojure.core/name name)
          (let [{~base-args :args ~base-result :result} (expr-results ~args ~expr)]
-           (if-let [e# (:exception ~base-result)]
+           (if-let [e# (:exception (:results ~base-result))]
              (test/is (not e#) "Baseline expr threw an exception")
              (do ~@(for [test-expr exprs]
                      `(let [{expr# :expr args# :args result# :result} (expr-results ~args ~test-expr)]
                         (test/testing (str "in expr " expr#)
-                          (if-let [e# (:exception result#)]
+                          (if-let [e# (:exception (:results result#))]
                             (test/is (not e#) "expr threw an exception")
                             (do (doseq [[i# base-arg# arg#] (map vector (range) ~base-args args#)]
                                   (test/testing (format "%sth inputs are equal after the op" i#)
@@ -114,7 +114,7 @@
            (let [raw-results# [~@(for [s-and-e (cons [{} expr] (partition 2 slowness-and-exprs))]
                                    `(bench-results ~args ~s-and-e))]
                  results# (keep (fn [result#]
-                                  (if-let [e# (:exception result#)]
+                                  (if-let [e# (:exception (:results result#))]
                                     (do (test/is (not e#) (format "expr %s threw an exception"
                                                                   (:expr result#)))
                                         nil)
