@@ -253,9 +253,14 @@
 
 (defmacro aselect-indices!
   "Like aselect!, but mutates an array of indices instead."
+  ([xs k]
+     `(let [xs# ~xs] (aselect-indices! xs# 0 (alength xs#) ~k)))
   ([indices xs k]
      `(let [indices# ~indices]
         (aselect-indices! indices# ~xs 0 (hiphip.IndexArrays/length indices#) ~k)))
+  ([xs start stop k]
+     `(doto (hiphip.IndexArrays/make ~start ~stop)
+        (aselect-indices! ~xs ~k)))
   ([indices xs start stop k]
      `(doto ~indices (Helpers/selectIndices ~xs ~start ~stop ~k))))
 
