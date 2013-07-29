@@ -18,4 +18,6 @@
   ;; Clear out devault JVM opts set by leiningen that trade startup time for
   ;; optimization, making Clojure array code run slow.
   ;; You probably want this in your project too.
-  :jvm-opts ^:replace [])
+  :jvm-opts ^:replace []
+  :aot [ hiphip.array hiphip.double hiphip.int hiphip.float hiphip.long]
+  )

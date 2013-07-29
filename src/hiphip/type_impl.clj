@@ -1,6 +1,6 @@
 ;; As a hack to avoid writing macro-macros, this file defines the
 ;; per-type macros, and is loaded in each type's namespace.
-
+(do 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 (require '[hiphip.impl.core :as impl] '[hiphip.array :as array])
@@ -292,3 +292,4 @@
     (asort-indices! xs 0 k)))
 
 (set! *warn-on-reflection* false)
+)
