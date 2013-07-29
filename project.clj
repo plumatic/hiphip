@@ -1,10 +1,10 @@
-(defproject prismatic/hiphip "0.2.0-SNAPSHOT"
+(defproject prismatic/hiphip-aot "0.1.0"
   :description "hiphip (array!): elegant methods for doing fast math
-                with arrays in Clojure."
+                with arrays in Clojure, AOT version."
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
-  :url "https://github.com/Prismatic/hiphip"
+  :url "https://github.com/tommyettinger/hiphip-aot"
   :java-source-paths ["java"]
   :dependencies [[org.clojure/clojure "1.5.1"]]
   :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]
