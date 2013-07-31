@@ -1,4 +1,4 @@
-(defproject prismatic/hiphip-aot "0.1.0"
+(defproject hiphip-aot "0.1.1"
   :description "hiphip (array!): elegant methods for doing fast math
                 with arrays in Clojure, AOT version."
   :license {:name "Eclipse Public License - v 1.0"
