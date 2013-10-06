@@ -1,3 +1,7 @@
+(ns  hiphip.generative.type_impl_gen)
+(defn load-type-impl-gen []
+  "
+  (do
 (defspec asum-sums
   (fn [xs]
     (asum [x xs] x))
@@ -79,3 +83,5 @@
       ys))
   [^{:tag (`array-gen)} xs]
   (assert (every? true? (map = xs %))))
+  )
+  ")
