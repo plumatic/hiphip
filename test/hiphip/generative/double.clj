@@ -1,5 +1,5 @@
 (ns hiphip.generative.double
-  (:use hiphip.double)
+  (:use hiphip.double hiphip.generative.type_impl_gen)
   (:require [clojure.test.generative :as test :refer (defspec)]
             [hiphip.generators :as gen])
   (:refer-clojure :exclude [amap areduce alength aclone aset aget]))
@@ -9,4 +9,4 @@
 (def new-array double-array)
 (defn is-type? [n] (instance? Double n))
 
-(load "type_impl_gen")
+(eval (read-string (load-type-impl-gen)))

@@ -1,9 +1,10 @@
 ;;; Benchmark code shared between array types.
 ;; Assumes the appropriate hiphip array type ns has been aliased as 'hiphip',
 ;; and the appropriate Java baseline class has been imported as 'Baseline'
-
-(use 'clojure.test 'hiphip.test-utils)
-(require '[hiphip.impl.core :as impl])
+(ns hiphip.type_impl_test)
+(defn load-type-impl-test []
+  "
+  (do
 
 (def +type+ hiphip/+type+)
 
@@ -75,15 +76,15 @@
 (deftest big-partition-and-sort-ops-test
   (let [n 1000
         r (java.util.Random. 1)]
-    (doseq [[test-name t] {"direct" direct-partition-ops-tests
-                           "indirect" index-partition-ops-tests}
-            [seq-name s] {"zeros" (repeat n 0)
-                          "asc" (range n)
-                          "desc" (reverse (range n))
-                          "rand" (repeatedly n #(.nextInt r 10000))
-                          "rand-repeated" (repeatedly n #(.nextInt r 100))}
+    (doseq [[test-name t] {\"direct\" direct-partition-ops-tests
+                           \"indirect\" index-partition-ops-tests}
+            [seq-name s] {\"zeros\" (repeat n 0)
+                          \"asc\" (range n)
+                          \"desc\" (reverse (range n))
+                          \"rand\" (repeatedly n #(.nextInt r 10000))
+                          \"rand-repeated\" (repeatedly n #(.nextInt r 100))}
             k [1 10 50 100 500 900 950 990 999]]
-      (testing (format "%s opts on %s with k=%s" test-name n k)
+      (testing (format \"%s opts on %s with k=%s\" test-name n k)
         (t s k)))))
 
 (deftest simple-partition-and-sort-opts-test
@@ -140,7 +141,7 @@
 ;;; Benchmark/equality tests
 
 (defn- select-slowness
-  "If slowness is given as a type map, pull out the correct value"
+  \"If slowness is given as a type map, pull out the correct value\"
   [slowness-and-exprs]
   (->> (partition 2 slowness-and-exprs)
        (mapcat (fn [[slowness expr]]
@@ -148,9 +149,9 @@
                   expr]))))
 
 (defmacro defbenchmarktype
-  "Wrapper around defbenchmark for fns that take two arrays of the primitive type being tested,
+  \"Wrapper around defbenchmark for fns that take two arrays of the primitive type being tested,
    and allows expressing type-dependent slowness like:
-   {:double slowness :float slowness :int slowness :long slowness}"
+   {:double slowness :float slowness :int slowness :long slowness}\"
   [name expr & slowness-and-exprs]
   (assert (even? (count slowness-and-exprs)))
   `(defbenchmark ~name [~(impl/array-cast +type+ 'xs) ~(impl/array-cast +type+ 'ys)]
@@ -310,9 +311,9 @@
 
 
 (defmacro amax-clj
-  "Maximum over an array."
+  \"Maximum over an array.\"
   [xs]
-  (let [rsym (gensym "r") xsym (gensym "x")]
+  (let [rsym (gensym \"r\") xsym (gensym \"x\")]
     `(let [xs# ~xs]
        (hiphip/areduce [~xsym xs#]
                        ~rsym
@@ -338,12 +339,12 @@
 (let [me *ns*]
   (defn all-tests [size]
     (doseq [[n t] (ns-interns me)
-            :when (.startsWith ^String (name n) "test-")]
+            :when (.startsWith ^String (name n) \"test-\")]
       (t (gen-array size 0) (gen-array size 1))))
 
   (defn all-benches [size]
     (doseq [[n t] (ns-interns me)
-            :when (.startsWith ^String (name n) "bench-")]
+            :when (.startsWith ^String (name n) \"bench-\")]
       (t (gen-array size 0) (gen-array size 1)))))
 
 (deftest hiphip-type-test
@@ -358,7 +359,7 @@
 (set! *unchecked-math* false)
 
 (defmacro deftestfasttype
-  "Wrapper around deftestfast -- like defbenchmarktype, but does not declare a test."
+  \"Wrapper around deftestfast -- like defbenchmarktype, but does not declare a test.\"
   [name expr & slowness-and-exprs]
   (assert (even? (count slowness-and-exprs)))
   `(deftestfast ~name [~(impl/array-cast +type+ 'xs) ~(impl/array-cast +type+ 'ys)]
@@ -382,3 +383,5 @@
     (sort-ops xs xs)))
 
 (set! *warn-on-reflection* false)
+)
+")

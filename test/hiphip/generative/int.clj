@@ -1,5 +1,5 @@
 (ns hiphip.generative.int
-  (:use hiphip.int)
+  (:use hiphip.int hiphip.generative.type_impl_gen)
   (:require [clojure.test.generative :as test :refer (defspec)]
             [hiphip.generators :as gen])
   (:refer-clojure :exclude [amap areduce alength aclone aset aget]))
@@ -9,4 +9,4 @@
 (def new-array int-array)
 (defn is-type? [n] (instance? Integer n))
 
-(load "type_impl_gen")
+(eval (read-string (load-type-impl-gen)))
