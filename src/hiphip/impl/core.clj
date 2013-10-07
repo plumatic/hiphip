@@ -165,4 +165,7 @@
            ~@body
            (recur (unchecked-inc-int ~sym)))))))
 
+(defn ^String slurp-from-classpath [^String file]
+  (slurp (.getResourceAsStream (clojure.lang.RT/baseLoader) file)))
+
 (set! *warn-on-reflection* false)
