@@ -1,7 +1,7 @@
 hiphip (array)!
 ===============
 
-`hiphip` is an array library for Clojure, whicih provides elegant
+`hiphip` is an array library for Clojure, which provides elegant
 methods for fast math with primitive arrays.
 
 Leiningen dependency (Clojars): `[prismatic/hiphip "0.1.0"]`
