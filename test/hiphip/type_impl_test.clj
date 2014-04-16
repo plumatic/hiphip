@@ -189,6 +189,12 @@
   {:double 1.1 :float 1.7 :long 1.9 :int 1.3}
   (hiphip/amake [i (hiphip/alength xs)] (inc (hiphip/aget xs i))))
 
+;; Arrays should be correctly cast even if the RHS is somewhat complex.
+(defbenchmarktype array-cast
+  (hiphip/afill! [x xs] (+ x 2))
+  1.1 (let [m {:xs {:data [xs]}}]
+        (hiphip/afill! [x (-> m (get-in [:xs :data]) first)] (+ x 2))))
+
 ;; helpers for areduce-and-dot-product
 
 (defmacro hinted-hiphip-areduce [bind ret-sym init final]
