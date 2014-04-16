@@ -191,7 +191,9 @@
 
 ;; Arrays should be correctly cast even if the RHS is somewhat complex.
 (defbenchmarktype array-cast
-  (hiphip/afill! [x xs] (+ x 2))
+  (let [m {:xs {:data [xs]}}]
+    (let [xs-new (-> m (get-in [:xs :data]) first)]
+      (hiphip/afill! [x xs-new] (+ x 2))))
   1.1 (let [m {:xs {:data [xs]}}]
         (hiphip/afill! [x (-> m (get-in [:xs :data]) first)] (+ x 2))))
 
