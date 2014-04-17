@@ -85,7 +85,8 @@
                                               "val sym or pair of index and value syms")
                                   [(first left) (second left)]))
           array-sym (gensym "arr")]
-      {:array-bindings [array-sym right]
+      {:array-bindings [(vary-meta array-sym merge (select-keys (meta right) [:tag]))
+                        right]
        :value-bindings (into (if idx-sym [idx-sym index-sym] [])
                              [val-sym `(aget ~array-sym ~(intcast index-sym))])})))
 
