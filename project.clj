@@ -9,7 +9,9 @@
   :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]
                    :dependencies [[org.clojure/clojure "1.5.1"]
                                   [criterium "0.4.1"]
-                                  [org.clojure/test.generative "0.4.0"]]}}
+                                  [org.clojure/test.generative "0.4.0"]]}
+             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}}
+  :aliases {"all" ["with-profile" "dev:dev,1.6"]}
   :test-selectors {:fast #(not (or (:bench %) (:gen-test %)))
                    :gen-test :gen-test
                    :bench :bench}

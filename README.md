@@ -287,7 +287,7 @@ involved options to Clojure and the the JVM.
 
 ## Supported Clojure versions
 
-HipHip is currently supported on Clojure 1.5.x.
+HipHip is currently supported on Clojure 1.5.x and 1.6.x.
 
 ## Contributors
 
