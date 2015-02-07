@@ -285,6 +285,12 @@ involved options to Clojure and the the JVM.
   cases (especially with double array operations) it actually hurts
   performance.
 
+## Documentation
+
+* [Prismatic blog posting](http://blog.getprismatic.com/introducing-hiphip-array-fast-and-flexible-numerical-computation-in-clojure/) announcing HipHip (Array!)
+* [Emil Flakk's blog posting](http://www.flakk.me/jekyll/update/2013/07/10/fast-clojure-math.html) about HipHip
+* [API Docs on CrossClj.info](http://crossclj.info/doc/prismatic/hiphip/0.2.0/index.html)
+ 
 ## Supported Clojure versions
 
 HipHip is currently supported on Clojure 1.5.x and 1.6.x.
