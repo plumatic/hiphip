@@ -1,4 +1,4 @@
-hiphip (array)!
+hiphip (array)! [![Build Status](https://travis-ci.org/Prismatic/hiphip.svg?branch=master)](https://travis-ci.org/Prismatic/hiphip)
 ===============
 
 `hiphip` is an array library for Clojure, which provides elegant
