@@ -6,7 +6,8 @@
             :distribution :repo}
   :url "https://github.com/Prismatic/hiphip"
   :java-source-paths ["java"]
-  :profiles {:dev {:plugins [[lein-marginalia "0.7.1"]]
+  :profiles {:dev {:global-vars {*warn-on-reflection* true}
+                   :plugins [[lein-marginalia "0.7.1"]]
                    :dependencies [[org.clojure/clojure "1.6.0"]
                                   [criterium "0.4.1"]
                                   [org.clojure/test.generative "0.4.0"]]}
@@ -18,7 +19,6 @@
                    :bench :bench}
   :lein-release {:deploy-via :shell
                  :shell ["lein" "deploy" "clojars"]}
-  :warn-on-reflection true
   ;; Clear out devault JVM opts set by leiningen that trade startup time for
   ;; optimization, making Clojure array code run slow.
   ;; You probably want this in your project too.
