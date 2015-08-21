@@ -4,7 +4,7 @@ hiphip (array)! [![Build Status](https://travis-ci.org/Prismatic/hiphip.svg?bran
 `hiphip` is an array library for Clojure, which provides elegant
 methods for fast math with primitive arrays.
 
-Leiningen dependency (Clojars): `[prismatic/hiphip "0.2.0"]`
+Leiningen dependency (Clojars): `[prismatic/hiphip "0.2.1"]`
 
 **This is an alpha release. The API and organizational structure are
 subject to change. Comments and contributions are much appreciated.**

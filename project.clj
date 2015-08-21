@@ -12,7 +12,7 @@
                                   [criterium "0.4.1"]
                                   [org.clojure/test.generative "0.4.0"]]}
              :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-alpha6"]]}}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
   :aliases {"all" ["with-profile" "dev:dev,1.5:dev,1.7"]}
   :test-selectors {:fast #(not (or (:bench %) (:gen-test %)))
                    :gen-test :gen-test
