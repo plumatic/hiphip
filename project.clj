@@ -1,4 +1,4 @@
-(defproject prismatic/hiphip "0.2.1"
+(defproject prismatic/hiphip "0.2.2-SNAPSHOT"
   :description "hiphip (array!): elegant methods for doing fast math
                 with arrays in Clojure."
   :license {:name "Eclipse Public License - v 1.0"
@@ -6,7 +6,8 @@
             :distribution :repo}
   :url "https://github.com/Prismatic/hiphip"
   :java-source-paths ["java"]
-  :profiles {:dev {:global-vars {*warn-on-reflection* true}
+  :profiles {:provided {:dependencies [[org.clojure/clojure "1.6.0"]]}
+             :dev {:global-vars {*warn-on-reflection* true}
                    :plugins [[lein-marginalia "0.7.1"]]
                    :dependencies [[org.clojure/clojure "1.6.0"]
                                   [criterium "0.4.1"]
