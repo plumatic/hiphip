@@ -1,4 +1,4 @@
-(defproject prismatic/hiphip "0.2.1-SNAPSHOT"
+(defproject prismatic/hiphip "0.2.1"
   :description "hiphip (array!): elegant methods for doing fast math
                 with arrays in Clojure."
   :license {:name "Eclipse Public License - v 1.0"
