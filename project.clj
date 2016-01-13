@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
-  :url "https://github.com/Prismatic/hiphip"
+  :url "https://github.com/plumatic/hiphip"
   :java-source-paths ["java"]
   :profiles {:provided {:dependencies [[org.clojure/clojure "1.6.0"]]}
              :dev {:global-vars {*warn-on-reflection* true}

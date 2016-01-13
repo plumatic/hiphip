@@ -287,7 +287,7 @@ involved options to Clojure and the the JVM.
 
 ## Documentation
 
-* [Prismatic blog posting](http://blog.getprismatic.com/introducing-hiphip-array-fast-and-flexible-numerical-computation-in-clojure/) announcing HipHip (Array!)
+* [Prismatic blog posting](http://plumatic.github.io//introducing-hiphip-array-fast-and-flexible-numerical-computation-in-clojure) announcing HipHip (Array!)
 * [Emil Flakk's blog posting](http://www.flakk.me/jekyll/update/2013/07/10/fast-clojure-math.html) about HipHip
 * [API Docs on CrossClj.info](http://crossclj.info/doc/prismatic/hiphip/0.2.0/index.html)
  
