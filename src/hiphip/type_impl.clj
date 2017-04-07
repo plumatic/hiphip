@@ -19,7 +19,7 @@
   `(clojure.core/alength ~(impl/array-cast +type+ xs)))
 
 (definline aget
-  "aset that doesn't require type hinting"
+  "aget that doesn't require type hinting"
   [xs idx]
   `(clojure.core/aget ~(impl/array-cast +type+ xs) ~(impl/intcast idx)))
 
