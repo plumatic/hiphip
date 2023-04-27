@@ -51,7 +51,7 @@ information.
 ## Tour de force
 
 Usually numerical code in Clojure is either elegant or fast. Why not
-both? Suppose you want do calculate the joint probability of an array
+both? Suppose you want to calculate the joint probability of an array
 of probabilities. You write this one-liner:
 
 ```clojure
